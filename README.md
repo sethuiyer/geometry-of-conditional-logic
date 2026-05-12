@@ -84,6 +84,27 @@ Where $v_i$ are calculated using modular multiplicative inverses. This is **full
 | Binary Gravity Constraint | Force strict Boolean-only states | Energy floor stayed nonzero | Impossible systems cannot collapse into admissible valleys |
 | "Void Residue" Behavior | Allow non-binary residues during UNSAT search | System invented higher-sheet escape states | Emergent "ghost dimensions" appear when constraints are impossible |
 
+## Extended Problem Analysis
+
+The framework's fit varies by problem type:
+
+| Problem | Fit Quality | Why |
+|---------|-------------|-----|
+| Word Ladder II | ★★★★☆ | Multiple shortest paths naturally map to equal-energy valleys |
+| Alien Dictionary | ★★★★★ | Topological ordering + cycle detection = frustration geometry |
+| Regex Matching | ★★★★★ | NFAs ARE topology — branches are sheets, stars are epsilon transitions |
+| Sudoku | ★★☆☆☆ | 81 interdependent constraints explode the period; requires monodromy extensions |
+
+## The Moiré Trap
+
+When superimposing waves of different prime frequencies, you get **moiré interference patterns** — chaotic terrain with false valleys everywhere. Standard optimization gets trapped at coordinates where exactly 2 out of 3 prime constraints are satisfied. The system builds an unscalable wall around itself.
+
+**The theorem:** Garner's discrete algorithm for CRT is **fundamentally identical** to continuous monodromy transport through a multidimensional manifold. Any jump by $M$ (product of satisfied primes) preserves all satisfied constraints:
+
+```
+z_new = z_old + n * M  (safe corridor for all n ∈ ℤ)
+```
+
 ---
 
 ## The Meta-Patterns
@@ -120,17 +141,21 @@ z_new = z_old + n * M  (safe corridor for all n ∈ ℤ)
 ```
 src/
 ├── prime_logic_nn.py          # Basic 3-prime NN learning [1,0,1] logic
-├── hard_prime_maze.py        # 5-prime stress test with local minima traps
-├── garner_navigation.py       # Garner's algorithm as "teleporter" for 7 primes
+├── hard_prime_maze.py          # 5-prime stress test with local minima traps
+├── garner_navigation.py        # Garner's algorithm as "teleporter" for 7 primes
 ├── traffic_controller.py      # Safety-critical 4-way intersection (7/7 passed)
 ├── prime_n_queens.py          # 8-Queens solver using monodromy jumps
 ├── prime_timetable.py         # University class scheduler
-├── prime_mastermind.py        # Mastermind codebreaker (100/100 solved)
-├── prime_sat_landscape.py     # 3-SAT visualization as frustration geometry
-├── extract_sat_solutions.py   # Extract Boolean assignments from coordinates
-├── verify_sat.py              # Cross-check manifold valleys against Boolean SAT
-├── prime_pigeonhole.py        # Pigeonhole principle demonstration (UNSAT proof)
-└── prime_pigeonhole_strict.py # Strict binary version (proved UNSAT)
+├── prime_mastermind.py         # Mastermind codebreaker (100/100 solved)
+├── prime_sat_landscape.py      # 3-SAT visualization as frustration geometry
+├── extract_sat_solutions.py    # Extract Boolean assignments from coordinates
+├── verify_sat.py               # Cross-check manifold valleys against Boolean SAT
+├── prime_pigeonhole.py         # Pigeonhole principle demonstration (UNSAT proof)
+├── prime_pigeonhole_strict.py  # Strict binary version (proved UNSAT)
+├── prime_word_ladder.py        # Word Ladder II — multiple equal-energy valleys
+├── prime_alien_dict.py         # Topological ordering with cycle detection
+├── prime_regex_manifold.py     # NFA as multi-sheet manifold navigation
+└── prime_sudoku.py             # Full 9x9 Sudoku (81-cell constraint manifold)
 
 docs/
 ├── MATH.md                    # Mathematical formulation and PyTorch implementation
@@ -138,8 +163,10 @@ docs/
 ├── podcast.md                 # Development narrative
 └── codingsession.md          # Additional conversation logs
 
-index.html                     # Visual showcase with KaTeX math rendering
+index.html                    # Visual showcase with KaTeX math rendering
 sat_landscape.png             # SAT frustration geometry visualization
+pigeonhole_frustration.png   # UNSAT as irreducible geometric frustration
+CRITIC.md                    # Response to Hacker News critique
 ```
 
 ---
@@ -151,6 +178,9 @@ sat_landscape.png             # SAT frustration geometry visualization
 - **Mastermind:** 100/100 games solved, average 4.47 turns (near theoretical efficiency)
 - **SAT Landscape:** Visualized as physical energy terrain — valleys = satisfying assignments, mountains = frustration
 - **Pigeonhole (UNSAT):** Energy floor stayed nonzero — impossible constraints manifest as irreducible geometric frustration
+- **Word Ladder II:** Found multiple shortest paths as equal-energy valleys
+- **Alien Dictionary:** Cycle detection correctly identifies UNSAT (prefix invalid cases)
+- **Regex Matching:** Path tracing through multi-sheet manifold — NFAs are literally topology
 
 ---
 
