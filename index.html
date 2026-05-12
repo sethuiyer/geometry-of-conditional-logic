@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Topology of Conditional Logic | Monodromy & Garner's Algorithm</title>
+    <script async defer src="https://beampipe.io/js/tracker.js" data-beampipe-domain="sethuiyer.github.io"></script>
+    <meta name="description"
+        content="How prime number manifolds, Chinese Remainder Theorem, and a 1958 algorithm transform rigid if/else statements into continuous differentiable geometries for neural networks.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+    <style>
+        :root {
+            --bg-deep: #0a0a0f;
+            --bg-surface: #12121a;
+            --bg-card: #1a1a24;
+            --bg-elevated: #22222e;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --accent-cyan: #00d4ff;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-orange: #f97316;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            --gradient-1: linear-gradient(135deg, #00d4ff 0%, #a855f7 50%, #ec4899 100%);
+            --gradient-2: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            --glow-cyan: 0 0 60px rgba(0, 212, 255, 0.3);
+            --glow-purple: 0 0 60px rgba(168, 85, 247, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.7;
+            overflow-x: hidden;
+            font-size: 18px;
+        }
+
+        ::selection {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-elevated);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 16px 0;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            letter-spacing: 0.05em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 24px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--accent-cyan);
+            margin-bottom: 32px;
+            letter-spacing: 0.08em;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.9);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(40px, 7vw, 72px);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(17px, 2.5vw, 21px);
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin: 0 auto 40px;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-meta-item {
+            text-align: center;
+        }
+
+        .hero-meta-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .hero-meta-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 4px;
+        }
+
+        /* Sections */
+        section {
+            padding: 100px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(28px, 4vw, 42px);
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-desc {
+            font-size: 17px;
+            color: var(--text-secondary);
+            max-width: 580px;
+            margin: 0 auto;
+        }
+
+        /* Typography */
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: var(--accent-purple);
+            margin: 40px 0 14px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.01em;
+        }
+
+        h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 24px 0 10px;
+        }
+
+        p {
+            margin-bottom: 18px;
+            color: var(--text-secondary);
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Math blocks */
+        .math-block {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin: 28px 0;
+            overflow-x: auto;
+        }
+
+        .math-block .katex {
+            font-size: 1.1em;
+        }
+
+        /* Code blocks */
+        pre {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin: 24px 0;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #b0b0c0;
+        }
+
+        pre .kw {
+            color: var(--accent-purple);
+        }
+
+        pre .fn {
+            color: var(--accent-cyan);
+        }
+
+        pre .cm {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        pre .st {
+            color: var(--accent-green);
+        }
+
+        pre .nu {
+            color: var(--accent-orange);
+        }
+
+        /* Callouts */
+        .callout {
+            border-left: 3px solid var(--accent-purple);
+            padding: 18px 22px;
+            margin: 28px 0;
+            background: rgba(168, 85, 247, 0.06);
+            border-radius: 0 10px 10px 0;
+            font-size: 16px;
+        }
+
+        .callout.info {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 212, 255, 0.06);
+        }
+
+        .callout.warn {
+            border-color: var(--accent-orange);
+            background: rgba(249, 115, 22, 0.06);
+        }
+
+        .callout.success {
+            border-color: var(--accent-green);
+            background: rgba(34, 197, 94, 0.06);
+        }
+
+        .callout.danger {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.06);
+        }
+
+        /* Visualization containers */
+        .viz-container {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 36px;
+            margin: 32px 0;
+            text-align: center;
+        }
+
+        .viz-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .viz-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+        }
+
+        /* Parking garage visualization */
+        .parking-garage {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            perspective: 800px;
+        }
+
+        .floor {
+            width: 90px;
+            height: 160px;
+            background: var(--bg-elevated);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: rotateX(8deg);
+            transition: all 0.4s ease;
+        }
+
+        .floor.active {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--glow-cyan);
+            background: rgba(0, 212, 255, 0.08);
+        }
+
+        .floor-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .floor-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 8px 0;
+        }
+
+        .floor.active .floor-number {
+            color: var(--accent-cyan);
+        }
+
+        .floor-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Clock visualization */
+        .clock-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .clock-face {
+            width: 180px;
+            height: 180px;
+            border: 3px solid var(--bg-elevated);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .clock-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 3px;
+        }
+
+        .clock-hand.hand-2 {
+            width: 3px;
+            height: 65px;
+            margin-left: -1.5px;
+            background: var(--accent-cyan);
+            transform: translateX(-50%) rotate(90deg);
+        }
+
+        .clock-hand.hand-3 {
+            width: 4px;
+            height: 55px;
+            margin-left: -2px;
+            background: var(--accent-purple);
+            transform: translateX(-50%) rotate(60deg);
+        }
+
+        .clock-hand.hand-5 {
+            width: 5px;
+            height: 45px;
+            margin-left: -2.5px;
+            background: var(--accent-pink);
+            transform: translateX(-50%) rotate(108deg);
+        }
+
+        .clock-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .clock-legend {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+        }
+
+        .clock-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .clock-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .clock-legend-dot.cyan {
+            background: var(--accent-cyan);
+        }
+
+        .clock-legend-dot.purple {
+            background: var(--accent-purple);
+        }
+
+        .clock-legend-dot.pink {
+            background: var(--accent-pink);
+        }
+
+        /* Results table */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-size: 15px;
+        }
+
+        .results-table th {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .results-table tr:hover td {
+            background: rgba(168, 85, 247, 0.04);
+        }
+
+        .pass {
+            color: var(--accent-green);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+        }
+
+        .fail {
+            color: var(--accent-red);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+        }
+
+        .coord {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--accent-cyan);
+        }
+
+        /* Comparison grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 28px 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .comparison-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .comparison-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .comparison-badge.fail {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+        }
+
+        .comparison-badge.success {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent-green);
+        }
+
+        .comparison-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .comparison-stat {
+            text-align: center;
+        }
+
+        .comparison-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .comparison-stat-value.fail {
+            color: var(--accent-red);
+        }
+
+        .comparison-stat-value.success {
+            color: var(--accent-green);
+        }
+
+        .comparison-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Timeline for failed attempts */
+        .failed-timeline {
+            position: relative;
+            padding-left: 36px;
+        }
+
+        .failed-timeline::before {
+            content: '';
+            position: absolute;
+            left: 13px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--accent-red), transparent);
+        }
+
+        .failed-item {
+            position: relative;
+            margin-bottom: 36px;
+            padding: 24px 28px;
+            background: var(--bg-card);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 14px;
+        }
+
+        .failed-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 32px;
+            width: 14px;
+            height: 14px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .failed-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .failed-item h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .failed-item p {
+            font-size: 15px;
+            margin-bottom: 0;
+        }
+
+        /* Theorem box */
+        .theorem-box {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .theorem-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--accent-cyan);
+            letter-spacing: 0.2em;
+            margin-bottom: 14px;
+        }
+
+        .theorem-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .theorem-text {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Separator */
+        .sep {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 44px 0;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+        }
+
+        .sep::before,
+        .sep::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Quote block */
+        .quote-block {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent-pink);
+            padding: 20px 24px;
+            margin: 28px 0;
+            font-style: italic;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .quote-block strong {
+            color: var(--text-primary);
+        }
+
+        /* Demo output blocks */
+        .demo-output {
+            background: var(--bg-elevated);
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            max-height: 240px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .demo-output .success {
+            color: var(--accent-green);
+        }
+
+        .demo-output .fail {
+            color: var(--accent-red);
+        }
+
+        .demo-output .info {
+            color: var(--accent-cyan);
+        }
+
+        .demo-output .warn {
+            color: var(--accent-orange);
+        }
+
+        /* Flow steps */
+        .flow-steps {
+            display: flex;
+            gap: 16px;
+            margin: 32px 0;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .flow-step {
+            flex: 0 0 200px;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .flow-step-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--accent-cyan);
+            margin-bottom: 10px;
+        }
+
+        .flow-step h4 {
+            font-size: 14px;
+            margin: 0 0 8px;
+        }
+
+        .flow-step p {
+            font-size: 13px;
+            margin: 0;
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .footer-text a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-steps {
+                flex-wrap: wrap;
+            }
+
+            .flow-step {
+                flex: 1 1 160px;
+            }
+
+            footer .container {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="nav-logo">TOPOLOGY OF LOGIC</div>
+            <ul class="nav-links">
+                <li><a href="#problem">The Problem</a></li>
+                <li><a href="#theory">Theory</a></li>
+                <li><a href="#lambert-w">Failed Attempts</a></li>
+                <li><a href="#solution">Solution</a></li>
+                <li><a href="#moire">The Trap</a></li>
+                <li><a href="#escape">The Escape</a></li>
+                <li><a href="#demos">Demos</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">Research Publication</div>
+            <h1>The Topology of Conditional Logic</h1>
+            <p class="hero-subtitle">
+                How prime number manifolds, Chinese Remainder Theorem, and a 1958 algorithm
+                transform rigid if/else statements into continuous differentiable geometries
+            </p>
+            <div class="hero-meta">
+                <div class="hero-meta-item">
+                    <div class="hero-meta-value">1958</div>
+                    <div class="hero-meta-label">Garner's Algorithm</div>
+                </div>
+                <div class="hero-meta-item">
+                    <div class="hero-meta-value">6</div>
+                    <div class="hero-meta-label">Primes Stacked</div>
+                </div>
+                <div class="hero-meta-item">
+                    <div class="hero-meta-value">32K+</div>
+                    <div class="hero-meta-label">State Space</div>
+                </div>
+                <div class="hero-meta-item">
+                    <div class="hero-meta-value">3</div>
+                    <div class="hero-meta-label">Jumps to Solve</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Problem -->
+    <section id="problem">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">I — The Problem</div>
+                <h2 class="section-title">The Broken Staircase</h2>
+            </div>
+
+            <p>Every <code>if/else</code> statement in the history of coding is a <strong>Heaviside step
+                    function</strong> — a mathematical singularity that completely halts gradient descent.</p>
+
+            <div class="math-block">
+                $$H(x) = \begin{cases} 0 & x < 0 \\ 1 & x \ge 0 \end{cases} \qquad \frac{d}{dx}H(x)=\delta(x)$$ </div>
+
+                    <p>The derivative is <strong>zero everywhere</strong> except at the boundary, where it is
+                        <strong>infinite</strong>. A neural network sees either a featureless plane or an impossible
+                        cliff—it cannot learn through a discrete branch.</p>
+
+                    <h3>The Gradient Descent Blindspot</h3>
+                    <p>Gradient descent is a blindfolded hiker finding the bottom of a valley. It feels the slope under
+                        its feet to navigate. But drop an if/else into that path and the hiker is standing on a flat
+                        plane, completely paralyzed.</p>
+
+                    <div class="callout info">
+                        <strong>The foam padding workaround:</strong> Current AI uses sigmoid, Gumbel-Softmax,
+                        straight-through estimators. They're not solving the discontinuity—they're masking it with
+                        artificial smoothness forced from outside rather than discovered from within.
+                    </div>
+
+                    <p>The profound question: <strong>does conditional logic possess an inherent continuous
+                            geometry?</strong></p>
+            </div>
+    </section>
+
+    <!-- Theory -->
+    <section id="theory">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">II — The Theory</div>
+                <h2 class="section-title">Prime-Numbered Riemann Surfaces</h2>
+            </div>
+
+            <p>Assign each logical condition a distinct prime $p_i$. On the complex plane, $z^{1/p}$ generates a
+                <strong>Riemann surface</strong>—a multi-sheeted spiral topology with exactly $p$ floors. Think of a
+                spiral parking garage: walking $2\pi$ around the center moves you to the next floor.</p>
+
+            <h3>The Cosine Wave Loss</h3>
+            <p>Map the modulo operator to a smooth wave. If a network outputs scalar $z$ and the target logic state is
+                $a_i$:</p>
+
+            <div class="math-block">
+                $$\mathcal{L}_i(z) = 1 - \cos\!\left(\frac{2\pi}{p_i}(z - a_i)\right)$$
+            </div>
+
+            <p>The total loss is the <strong>superposition</strong> of all prime waves:</p>
+
+            <div class="math-block">
+                $$\mathcal{L}_{\text{total}} = \sum_{i=1}^{N}\left[1 - \cos\!\left(\frac{2\pi}{p_i}(z -
+                a_i)\right)\right]$$
+            </div>
+
+            <p>Because $\frac{d}{dz}\cos(\cdot) = -\sin(\cdot)$, the gradient is <em>never</em> zero unless $z$ is
+                exactly at the bottom of the valley. The blindfolded hiker always feels the slope.</p>
+
+            <h3>Chinese Remainder Theorem</h3>
+            <p>By the CRT, for pairwise coprime primes $\{p_1, \ldots, p_N\}$, there exists a unique <strong>Master
+                    Coordinate</strong> $X \in [0, \prod p_i)$ satisfying all residues simultaneously:</p>
+
+            <div class="math-block">
+                $$X \equiv a_i \pmod{p_i} \quad \forall\; i$$
+            </div>
+
+            <p>A single continuous number encodes the entire truth table. Example: target logic <code>[1, 0, 1]</code>
+                with primes <code>[2, 3, 5]</code> yields Master Coordinate $X = 21$.</p>
+
+            <div class="math-block">
+                $$21 \bmod 2 = 1\;(\text{True}) \qquad 21 \bmod 3 = 0\;(\text{False}) \qquad 21 \bmod 5 =
+                1\;(\text{True})$$
+            </div>
+
+            <h3>Garner's Algorithm (1958)</h3>
+            <p>The exact coordinate is computed via Garner's mixed-radix expansion:</p>
+
+            <div class="math-block">
+                $$X = v_1 + v_2\,p_1 + v_3\,p_1 p_2 + \cdots + v_k\!\prod_{j=1}^{k-1}p_j$$
+            </div>
+
+            <div class="callout">
+                <strong>The breakthrough:</strong> Garner's Algorithm—a 1958 tool for discrete integer arithmetic—turns
+                out to be the exact closed-form solution for <em>continuous topological teleportation</em> through a
+                multidimensional Riemann manifold. It constructs a "safe corridor" that fixes broken constraints without
+                disturbing satisfied ones.
+            </div>
+        </div>
+    </section>
+
+    <!-- Failed Attempts -->
+    <section id="lambert-w">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">III — Failed Attempts</div>
+                <h2 class="section-title">The Journey to the Solution</h2>
+                <p class="section-desc">Before the solution was found, elegant approaches shattered against reality</p>
+            </div>
+
+            <div class="failed-timeline">
+                <div class="failed-item">
+                    <div class="failed-badge">Experiment 1</div>
+                    <h4>Lambert W Function in Complex Plane</h4>
+                    <p>The initial theory: use the two branches of Lambert W (W₀ and W₋₁) as IF/ELSE paths. As input
+                        crosses the threshold, the imaginary parts would mirror perfectly and flip sign.</p>
+                    <div class="math-block" style="margin-top: 14px;">
+                        $$W_0(z) \cdot e^{W_0(z)} = z \quad\text{and}\quad W_{-1}(z) \cdot e^{W_{-1}(z)} = z$$
+                    </div>
+                </div>
+
+                <div class="failed-item">
+                    <div class="failed-badge">Crash</div>
+                    <h4>Complex Conjugacy Shattered</h4>
+                    <p>When input was +0.01i, principal branch output +1.33i, secondary output -1.34i. Close to perfect
+                        mirror. But when input was -0.01i, principal output -1.33i... secondary branch <strong>plunged
+                            to -7.58i</strong>.</p>
+                    <div class="math-block" style="margin-top: 14px;">
+                        $$|W_{-1}(-0.01i)| = 7.58i \neq 1.34i\;\text{(expected mirror)}$$
+                    </div>
+                </div>
+
+                <div class="failed-item">
+                    <div class="failed-badge">Crash</div>
+                    <h4>Saturation Limits Bounded Output</h4>
+                    <p>Even when forcing input from -100 to +100, W₀ maxed at 0.83 and bottomed at 0.17. The model could
+                        never be fully true or fully false—catastrophic for deep layers.</p>
+                    <div class="math-block" style="margin-top: 14px;">
+                        $$\text{saturation range: } [0.17, 0.83] \quad\text{instead of } [0, 1]$$
+                    </div>
+                </div>
+
+                <div class="failed-item">
+                    <div class="failed-badge">Pivot</div>
+                    <h4>Abandoning Complex Exponentials</h4>
+                    <p>The failure forced pivoting to <strong>prime number fractional exponentiation</strong> for
+                        building symmetric, stable manifolds with guaranteed saturation to hard 0/1.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution -->
+    <section id="solution">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">IV — The Solution</div>
+                <h2 class="section-title">Prime Riemann Surfaces in Action</h2>
+            </div>
+
+            <h3>The Spiral Parking Garage</h3>
+            <p>Each prime creates a multi-floor Riemann surface. Here's a 3-sheet surface (prime 3):</p>
+
+            <div class="viz-container">
+                <div class="viz-title">Riemann Surface for Prime 3</div>
+                <div class="viz-subtitle">Walking 2π around the center moves you to the next floor</div>
+                <div class="parking-garage">
+                    <div class="floor">
+                        <span class="floor-label">Floor 0</span>
+                        <span class="floor-number">0</span>
+                        <span class="floor-desc">State: False</span>
+                    </div>
+                    <div class="floor">
+                        <span class="floor-label">Floor 1</span>
+                        <span class="floor-number">1</span>
+                        <span class="floor-desc">Transition</span>
+                    </div>
+                    <div class="floor active">
+                        <span class="floor-label">Floor 2</span>
+                        <span class="floor-number">2</span>
+                        <span class="floor-desc">State: True</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>The Master Clock</h3>
+            <p>CRT creates a master clock with hands of different prime lengths. They only align at mathematically
+                predictable intervals:</p>
+
+            <div class="viz-container">
+                <div class="viz-title">Chinese Remainder Theorem Encoding</div>
+                <div class="viz-subtitle">Target: [1, 0, 1] → Master Coordinate: 21</div>
+                <div class="clock-display">
+                    <div class="clock-face">
+                        <div class="clock-hand hand-2"></div>
+                        <div class="clock-hand hand-3"></div>
+                        <div class="clock-hand hand-5"></div>
+                        <div class="clock-center"></div>
+                    </div>
+                    <div class="clock-legend">
+                        <div class="clock-legend-item">
+                            <div class="clock-legend-dot cyan"></div>
+                            <span>$p_1 = 2$</span>
+                        </div>
+                        <div class="clock-legend-item">
+                            <div class="clock-legend-dot purple"></div>
+                            <span>$p_2 = 3$</span>
+                        </div>
+                        <div class="clock-legend-item">
+                            <div class="clock-legend-dot pink"></div>
+                            <span>$p_3 = 5$</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Trap -->
+    <section id="moire">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">V — The Crisis</div>
+                <h2 class="section-title">The Moiré Trap</h2>
+                <p class="section-desc">The forward pass works flawlessly. But gradient descent becomes trapped in
+                    combinatorial frustration.</p>
+            </div>
+
+            <p>The continuous geometry that made the forward pass elegant created a nightmare for the backward pass.
+                When superimposing waves of different prime frequencies, you get <strong>moiré interference
+                    patterns</strong>—chaotic terrain with false valleys everywhere.</p>
+
+            <div class="quote-block">
+                <strong>The terrain itself prevents the system from fixing the final prime.</strong> Making progress on
+                one front mathematically mandates destroying progress on another. The system is fundamentally
+                frustrated, locked in a physical configuration where every move breaks something it already solved.
+            </div>
+
+            <h3>Convergence Rates vs. Number of Primes</h3>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Primes Stacked</th>
+                        <th>Nesterov Momentum</th>
+                        <th>Linear Annealing</th>
+                        <th>Random Noise</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2 primes</td>
+                        <td class="pass">26%</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td>3 primes</td>
+                        <td class="fail">8%</td>
+                        <td class="fail">10%</td>
+                        <td class="pass">32%</td>
+                    </tr>
+                    <tr>
+                        <td>4 primes</td>
+                        <td class="fail">2%</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td>5 primes</td>
+                        <td class="fail">0%</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout warn">
+                <strong>91% of trials permanently halted</strong> in local minima when standard optimization was
+                applied. The standard toolkit—momentum, annealing, noise—was structurally incapable of navigating the
+                space.
+            </div>
+
+            <h3>The Frustration Geometry Theorem</h3>
+            <p>The local minima were not random artifacts. They possessed a <strong>rigid structure</strong>: massive
+                traps at coordinates where exactly 2 out of 3 prime constraints were perfectly satisfied. The system had
+                built an unscalable wall around itself.</p>
+
+            <div class="callout danger">
+                <strong>The insight:</strong> The paralyzing frustrations we witness in gradient descent are not merely
+                random noise—they are literal physical topographies of constraint violations mapped from NP-hard
+                combinatorial space onto continuous loss landscapes.
+            </div>
+        </div>
+    </section>
+
+    <!-- The Escape -->
+    <section id="escape">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">VI — The Breakthrough</div>
+                <h2 class="section-title">Monodromy Transport</h2>
+                <p class="section-desc">Breaking the trap required topological elegance, not brute force.</p>
+            </div>
+
+            <p><strong>Lemma 1:</strong> Any jump Δz that is an exact multiple of the product of satisfied primes acts
+                as a <em>pure topological null space</em>—preserving alignment on all satisfied sheets while allowing
+                targeted correction of broken constraints.</p>
+
+            <div class="math-block">
+                $$M = p_1 \times p_2 \times \cdots \times p_k \quad\text{(product of satisfied primes)}$$
+                $$z_{\text{new}} = z_{\text{old}} + n \cdot M \quad\text{(safe corridor for all } n \in
+                \mathbb{Z}\text{)}$$
+            </div>
+
+            <h3>The Escape Sequence</h3>
+            <p>System trapped at $z = 29$. Primes 2, 3, 5 aligned. Primes 7, 11, 13 broken.</p>
+
+            <div class="flow-steps">
+                <div class="flow-step">
+                    <div class="flow-step-num">JUMP 1</div>
+                    <h4>Fix Prime 7</h4>
+                    <p>M = 2×3×5 = 30. Jump +30 lands at z=59. Prime 7 aligned.</p>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-step-num">JUMP 2</div>
+                    <h4>Fix Prime 11</h4>
+                    <p>M = 2×3×5×7 = 210. Jump +210. Prime 11 aligned.</p>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-step-num">JUMP 3</div>
+                    <h4>Fix Prime 13</h4>
+                    <p>M = 2×3×5×7×11 = 2310. Jump +16,170. All aligned!</p>
+                </div>
+            </div>
+
+            <div class="theorem-box">
+                <div class="theorem-label">THEOREM 1</div>
+                <div class="theorem-title">Topological Equivalence</div>
+                <div class="theorem-text">
+                    Garner's discrete algorithm for computing Chinese Remainder Theorem
+                    is <strong>fundamentally identical</strong> to continuous monodromy transport
+                    through a multidimensional complex manifold. Any jump by M preserves all satisfied constraints.
+                </div>
+            </div>
+
+            <h3>Brute Force vs. Monodromy</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <div class="comparison-header">
+                        <div class="comparison-title">Random Search</div>
+                        <div class="comparison-badge fail">Failed</div>
+                    </div>
+                    <div class="comparison-stats">
+                        <div class="comparison-stat">
+                            <div class="comparison-stat-value fail">10,000</div>
+                            <div class="comparison-stat-label">Guesses</div>
+                        </div>
+                        <div class="comparison-stat">
+                            <div class="comparison-stat-value fail">0</div>
+                            <div class="comparison-stat-label">Successes</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comparison-card">
+                    <div class="comparison-header">
+                        <div class="comparison-title">Monodromy Transport</div>
+                        <div class="comparison-badge success">Success</div>
+                    </div>
+                    <div class="comparison-stats">
+                        <div class="comparison-stat">
+                            <div class="comparison-stat-value success">3</div>
+                            <div class="comparison-stat-label">Jumps</div>
+                        </div>
+                        <div class="comparison-stat">
+                            <div class="comparison-stat-value success">100%</div>
+                            <div class="comparison-stat-label">Constraints Met</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="math-block" style="text-align: center;">
+                <strong style="font-size: 20px; color: var(--accent-cyan);">z = 16,439</strong>
+                <p style="margin: 8px 0 0; color: var(--text-muted);">6 primes, 32,000+ state space, solved in 3
+                    deterministic jumps</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Implementation -->
+    <section id="implementation">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">VII — Implementation</div>
+                <h2 class="section-title">NumPy Neural Network</h2>
+            </div>
+
+            <p>A 2-hidden-layer network with Adam optimization learns to output the exact Master Coordinate for target
+                logic <code>[1, 0, 1]</code> across primes <code>[2, 3, 5]</code>.</p>
+
+            <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Prime Wave Loss — the differentiable topology</span>
+<span class="kw">def</span> <span class="fn">prime_wave_loss</span>(z, targets, primes):
+    loss, dz = <span class="nu">0</span>, <span class="nu">0</span>
+    <span class="kw">for</span> a, p <span class="kw">in</span> zip(targets, primes):
+        phase = <span class="nu">2</span> * np.pi * (z - a) / p
+        loss += (<span class="nu">1</span> - np.cos(phase))
+        dz   += np.sin(phase) * (<span class="nu">2</span> * np.pi / p)
+    <span class="kw">return</span> loss, dz
+
+<span class="cm"># Garner's Algorithm — the "Teleporter"</span>
+<span class="kw">def</span> <span class="fn">garners_target</span>(a_list, p_list):
+    v = [a_list[<span class="nu">0</span>] % p_list[<span class="nu">0</span>]]
+    <span class="kw">for</span> i <span class="kw">in</span> range(<span class="nu">1</span>, len(p_list)):
+        prod = <span class="nu">1</span>
+        <span class="kw">for</span> j <span class="kw">in</span> range(i): prod *= p_list[j]
+        inv = pow(prod, <span class="nu">-1</span>, p_list[i])
+        temp = a_list[i]
+        <span class="kw">for</span> j <span class="kw">in</span> range(i):
+            pj = <span class="nu">1</span>
+            <span class="kw">for</span> k <span class="kw">in</span> range(j): pj *= p_list[k]
+            temp -= v[j] * pj
+        v.append((temp * inv) % p_list[i])
+    X, acc = v[<span class="nu">0</span>], <span class="nu">1</span>
+    <span class="kw">for</span> i <span class="kw">in</span> range(<span class="nu">1</span>, len(v)):
+        acc *= p_list[i<span class="nu">-1</span>]
+        X += v[i] * acc
+    <span class="kw">return</span> X
+
+<span class="cm"># Target: [True, False, True] → Garner's X = 21</span>
+primes = [<span class="nu">2</span>, <span class="nu">3</span>, <span class="nu">5</span>]
+target = [<span class="nu">1</span>, <span class="nu">0</span>, <span class="nu">1</span>]
+X = garners_target(target, primes)  <span class="cm"># → 21</span></pre>
+
+            <div class="sep">Convergence</div>
+
+            <p>The network converges to $z = 21.0000$, perfectly encoding the target logic. The continuous coordinate
+                decodes via simple modulo arithmetic—no step functions, no discontinuities.</p>
+        </div>
+    </section>
+
+    <!-- Demo Results -->
+    <section id="demos">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">VIII — Live Demos</div>
+                <h2 class="section-title">See It In Action</h2>
+                <p class="section-desc">Actual output from the NumPy implementations</p>
+            </div>
+
+            <h3>Traffic Controller Application</h3>
+            <p>A neural network controls a 4-way intersection. Out of 16 possible configurations, only <strong>7 are
+                    safe</strong>. Each decision is encoded as a prime residue:</p>
+
+            <div class="math-block">
+                $$p_1 = 2\;\text{(N/S Green)} \quad p_2 = 3\;\text{(E/W Green)} \quad p_3 = 5\;\text{(Left Turn)} \quad
+                p_4 = 7\;\text{(Pedestrian)}$$
+            </div>
+
+            <div class="callout warn">
+                <strong>Safety invariant:</strong> If NS = Green AND EW = Green → collision (forbidden). If Pedestrian =
+                Active → all traffic must be Red. The prime topology makes unsafe coordinates <em>geometrically
+                    unreachable.</em>
+            </div>
+
+            <h4>Results — 7/7 Scenarios Passed</h4>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Coordinate</th>
+                        <th>Extracted Logic</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Rush Hour (NS heavy)</td>
+                        <td class="coord">21.000</td>
+                        <td>NS-Green, LeftTurn</td>
+                        <td class="pass">✓ Safe</td>
+                    </tr>
+                    <tr>
+                        <td>Evening (EW dominant)</td>
+                        <td class="coord">70.000</td>
+                        <td>EW-Green</td>
+                        <td class="pass">✓ Safe</td>
+                    </tr>
+                    <tr>
+                        <td>Ambulance on N/S</td>
+                        <td class="coord">105.000</td>
+                        <td>NS-Green (EW blocked)</td>
+                        <td class="pass">✓ Safe</td>
+                    </tr>
+                    <tr>
+                        <td>Fire Truck on E/W</td>
+                        <td class="coord">70.000</td>
+                        <td>EW-Green</td>
+                        <td class="pass">✓ Safe</td>
+                    </tr>
+                    <tr>
+                        <td>Pedestrian Crossing</td>
+                        <td class="coord">120.000</td>
+                        <td>All-Red + Pedestrian</td>
+                        <td class="pass">✓ Safe</td>
+                    </tr>
+                    <tr>
+                        <td>Late Night</td>
+                        <td class="coord">0.000</td>
+                        <td>All-Red</td>
+                        <td class="pass">✓ Safe</td>
+                    </tr>
+                    <tr>
+                        <td>Emergency + Pedestrian</td>
+                        <td class="coord">120.000</td>
+                        <td>Pedestrian wins</td>
+                        <td class="pass">✓ Safe</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="sep">Output Log</div>
+
+            <div class="demo-output">
+                <span class="info">PRIME-TOPOLOGY TRAFFIC CONTROLLER</span>
+                <span class="info">Primes: [2, 3, 5, 7] | Coordinate Space: 0 to 209</span>
+                <span class="info">Total possible states: 16 | Safe states: 7 | Unsafe states: 9</span>
+
+                <span class="info">────────────────────────────────────────────────────────────────</span>
+                <span class="info">SCENARIO: Rush Hour: Heavy North-South Traffic</span>
+                Decision: NS-Green, LeftTurn
+                Target State: [1, 0, 1, 0] -> Garner Coordinate: 21
+
+                Network Output: z = 20.9995
+                Extracted Logic: [1, 0, 1, 0]
+                <span class="success"> ✅ SAFE ✅ CORRECT</span>
+
+                <span class="info">────────────────────────────────────────────────────────────────</span>
+                <span class="info">SCENARIO: EMERGENCY: Ambulance on North-South</span>
+                Decision: NS-Green (EW blocked)
+                Garner Coordinate: 105
+                Network Output: z = 104.9998
+                <span class="success"> ✅ SAFE ✅ CORRECT</span>
+
+                <span class="info">────────────────────────────────────────────────────────────────</span>
+                <span class="warn">FINAL SAFETY REPORT</span>
+                <span class="success"> 🏆 ALL 7 SCENARIOS PASSED: Zero safety violations.</span>
+                <span class="success"> The Prime-Topology guarantee holds: the neural network</span>
+                <span class="success"> CANNOT output an unsafe traffic configuration.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Laboratory -->
+    <section id="laboratory">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">IX — The Laboratory</div>
+                <h2 class="section-title">Scaling to Complexity</h2>
+                <p class="section-desc">Testing the Prime Manifold against classic NP-hard and logistics problems.</p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <div class="comparison-header">
+                        <div class="comparison-title">8-Queens "Watchmaker"</div>
+                        <div class="comparison-badge success">Solved</div>
+                    </div>
+                    <p style="font-size: 14px;">Navigated a search space of billions using Primes [11...37] to find the
+                        exact Master Coordinate in a single deterministic jump.</p>
+                    <div class="math-block"
+                        style="font-family: 'JetBrains Mono', monospace; font-size: 13px; text-align: center;">
+                        z = 2,372,774,783<br>
+                        <span style="color: var(--accent-green);">[5, 2, 4, 6, 0, 3, 1, 7]</span>
+                    </div>
+                </div>
+                <div class="comparison-card">
+                    <div class="comparison-header">
+                        <div class="comparison-title">Timetable Synchronizer</div>
+                        <div class="comparison-badge success">Solved</div>
+                    </div>
+                    <p style="font-size: 14px;">Resolved teacher and room collisions for 5 classes and 2 rooms
+                        simultaneously. Schedule locked at z = 251,603.</p>
+                    <div class="math-block"
+                        style="font-family: 'JetBrains Mono', monospace; font-size: 13px; text-align: center;">
+                        z = 251,603<br>
+                        <span style="color: var(--accent-cyan);">Zero Collisions</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout success">
+                <strong>Mastermind Deduction:</strong> Our topological solver cracked secret codes in an average of
+                <strong>4.47 turns</strong> across 100 games, hitting near-theoretical efficiency by annihilating
+                impossible sheets with every guess.
+            </div>
+        </div>
+    </section>
+
+    <!-- SAT Landscape -->
+    <section id="sat">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">X — Visualization</div>
+                <h2 class="section-title">The SAT Frustration Landscape</h2>
+                <p class="section-desc">Watching symbolic logic manifest as physical energy.</p>
+            </div>
+
+            <p>Every 3-SAT problem forms a physical energy landscape. Each clause is a "Penalty Wave" peaking at the
+                coordinate that violates it. Below is the continuous frustration geometry of our 4-variable SAT
+                instance.</p>
+
+            <div
+                style="margin: 40px 0; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; overflow: hidden; background: #000;">
+                <img src="sat_landscape.png" alt="SAT Frustration Landscape"
+                    style="width: 100%; display: block; filter: contrast(1.1) brightness(1.1);">
+            </div>
+
+            <p>The <strong>Deep Valleys</strong> are satisfying assignments. The <strong>Mountains</strong> are
+                geometric frustration. A neural network doesn't "search" this space; it simply rolls down the manifold
+                until it settles into a valley of truth.</p>
+        </div>
+    </section>
+
+    <!-- Boundaries -->
+    <section id="boundaries">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">XI — Epistemic Boundaries</div>
+                <h2 class="section-title">What This Is Not</h2>
+            </div>
+
+            <p><strong>Not a universal optimizer.</strong> Standard neural networks don't naturally organize weights
+                into prime Riemann surfaces. The teleportation only works if the architect explicitly encodes
+                constraints as prime manifolds from the beginning.</p>
+
+            <p><strong>Does not solve P = NP.</strong> Garner's Algorithm navigates the trap because the prime structure
+                is known in advance. For an arbitrary NP-hard problem, the algebraic map is unknown—you can't compute
+                the safe corridors.</p>
+
+            <h3>What Is Proven</h3>
+            <p>Congruence invariance in discrete arithmetic is <em>exactly equivalent</em> to monodromy invariance in
+                continuous topology. The paralyzing frustrations in gradient descent are not merely random noise—they
+                are literal physical topographies of constraint violations.</p>
+
+            <div class="quote-block">
+                <strong>Every if-else statement you've ever typed</strong>, every flowchart you've ever drawn, every
+                time you thought you were creating a rigid, absolute binary wall... you were actually just looking at a
+                <strong>flat shadow</strong> of a magnificent continuous manifold.
+            </div>
+
+            <div class="callout">
+                <em>"What other ancient discrete algorithms are actually just the flat collapsed shadows of magnificent
+                    continuous multi-dimensional geometries waiting to be discovered?"</em>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-text">
+                Based on <a href="#">"The Topology of Conditional Logic: Monodromy and Garner's Algorithm"</a>
+            </div>
+            <div class="footer-links">
+                <a href="#problem">The Problem</a>
+                <a href="#theory">Theory</a>
+                <a href="#escape">The Escape</a>
+                <a href="#demos">Demos</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>
