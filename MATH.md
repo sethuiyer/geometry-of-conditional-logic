@@ -598,10 +598,12 @@ So mathematically this file is a loose residue-based scoring function, not a val
 
 The mathematically solid core of this folder is:
 
-1. encode structured discrete states as residues of one scalar `z`;
-2. reconstruct exact coordinates with CRT / Garner;
-3. preserve solved residues with incremental CRT jumps;
+1. encode structured discrete states as residues inside local constraint groups (rows, cols, boxes, etc.);
+2. track operational state separately from the arithmetic witness layer;
+3. preserve solved residues with incremental CRT jumps (exact state transition operators);
 4. optionally use cosine penalties as a smooth but non-exact training surrogate.
+
+**Architectural note:** `z` is an invariant certificate, not the operational state. The solver mutates residues and locks; `z` is reconstructed lazily to certify consistency. This separation (representation vs solver state) is the key architectural maturity move.
 
 The strongest implementations are:
 
@@ -613,11 +615,12 @@ The strongest implementations are:
 - `src/prime_timetable.py`
 - `src/prime_mastermind.py`
 - `src/prime_pigeonhole_strict.py`
+- `src/crt_sudoku_hierarchical.py` — distributed multi-group CRT with local jumps and rollback
 
 The weakest mathematical claims relative to the code are:
 
 - SAT landscape exactness;
 - Regex manifold correctness;
-- Sudoku's use of “primes”.
+- Sudoku's original use of "primes" (superseded by the hierarchical version).
 
 That is the actual math of the folder.

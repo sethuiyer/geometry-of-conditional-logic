@@ -827,20 +827,33 @@
                         <div class="section-kicker">Math Core</div>
                         <h2>The exact mechanism underneath the strongest demos.</h2>
                         <p class="section-desc">
-                            Most of the repository reduces to one scalar coordinate $z$, a set of pairwise coprime moduli, and either a differentiable residue surrogate or an exact incremental CRT update.
+                            Most of the repository reduces to two layers: an <strong>operational layer</strong> of residues and local validity checks, and an <strong>arithmetic witness layer</strong> of CRT coordinates that certify exact commitment preservation. The core mechanism is the incremental CRT jump — an exact state transition operator that preserves all already-solved residues.
                         </p>
                     </div>
                 </div>
 
-                <div class="grid two">
-                    <div class="math-panel">
-                        <h3>Residue encoding</h3>
+                <div class="callout scope" style="margin-bottom:18px;">
+                    <strong>Architecture note:</strong> <code>z</code> is not the operational state. It is an <strong>invariant certificate</strong> — a CRT coordinate that proves algebraic commitment preservation. The operational state lives in residues, locks, and local validity tables. This separation is what makes the method architecturally clean: representation and solver state are no longer conflated.
+                </div>
+
+                <div class="math-panel">
+                        <h3>Operational layer: residues and locks</h3>
                         <div>
-                            $$r_i(z) = z \bmod p_i$$
-                            $$z \pmod P \longleftrightarrow (r_1,\dots,r_n), \qquad P=\prod_i p_i$$
+                            $$r_i = \text{current value of variable } i \text{ (operational state)}$$
+                            $$S = \{i : \text{variable } i \text{ is locked / committed}\}$$
                         </div>
                         <p class="math-caption">
-                            When the moduli are pairwise coprime, one scalar coordinate encodes one full discrete state vector.
+                            The operational layer tracks which residues are currently set, which variables are locked, and which assignments are locally valid. This is the state the solver actually reads and mutates.
+                        </p>
+                    </div>
+
+                    <div class="math-panel">
+                        <h3>Witness layer: CRT coordinate z</h3>
+                        <div>
+                            $$z \pmod{P} \longleftrightarrow (r_1,\dots,r_n), \qquad P=\prod_i p_i$$
+                        </div>
+                        <p class="math-caption">
+                            <code>z</code> is the arithmetic witness — a CRT coordinate that proves all committed residues are algebraically consistent. It is <em>reconstructed</em> from the operational state, not the source of truth. Lazy recomputation is the right strategy: reconstruct only at checkpoints, during debugging, or when a witness is needed.
                         </p>
                     </div>
 
@@ -852,56 +865,46 @@
                             $$\frac{dL}{dz}=\sum_i \frac{2\pi}{p_i}\sin\left(\frac{2\pi}{p_i}(z-a_i)\right)$$
                         </div>
                         <p class="math-caption">
-                            This is better thought of as an exact smooth objective for congruence satisfaction: its global minima occur exactly at the target residue classes. The heuristic part begins when you ask gradient descent to find those minima reliably.
+                            Exact smooth objective for congruence satisfaction. Zero set = target residue classes. Heuristic enters only when using gradient descent to find minima — not in the construction itself.
                         </p>
                     </div>
 
                     <div class="math-panel">
-                        <h3>Garner / CRT reconstruction</h3>
-                        <div>
-                            $$z = v_1 + v_2 p_1 + v_3 p_1 p_2 + \cdots$$
-                        </div>
-                        <p class="math-caption">
-                            Several files compute an exact target coordinate from a desired residue pattern. That is the arithmetic backbone of the “teleporter” story.
-                        </p>
-                    </div>
-
-                    <div class="math-panel">
-                        <h3>Incremental safe jump</h3>
+                        <h3>Incremental CRT jump (state transition operator)</h3>
                         <div>
                             $$z' = z + kM, \qquad M=\prod_{p \in S} p$$
                             $$k \equiv (c-z)M^{-1} \pmod{p_t}$$
                         </div>
                         <p class="math-caption">
-                            This is the strongest real mechanism in the repo. It sets a new residue while preserving all already-solved ones exactly. The best exact-search demos use this directly.
+                            The core mechanism. Sets variable <code>t</code> to value <code>c</code> while preserving all locked residues in <code>S</code> exactly. This is an <em>exact state transition</em> — no approximation, no tearing down prior commitments. All exact-search demos use this directly.
                         </p>
                     </div>
                 </div>
 
                 <div class="grid three" style="margin-top:18px;">
                     <div class="card">
-                        <h3>Exact</h3>
-                        <p>CRT decoding, Garner reconstruction, and residue-preserving jumps are exact arithmetic operations. They do exactly what they say they do, with no approximation layer in the update itself.</p>
+                        <h3>Operational state</h3>
+                        <p>Residues, locks, local validity tables, mutation history stack. This is what the solver reads and mutates on every step.</p>
                         <div class="label-row">
-                            <span class="tag success">CRT</span>
-                            <span class="tag success">Garner</span>
-                            <span class="tag success">Invariant updates</span>
+                            <span class="tag success">Residues</span>
+                            <span class="tag success">Locks</span>
+                            <span class="tag success">Mutation stack</span>
                         </div>
                     </div>
                     <div class="card">
-                        <h3>Exact lifts</h3>
-                        <p>The cosine objectives and some of the energy constructions are not arbitrary hacks. They are smooth lifts with the right zero sets or the right violation geometry for the discrete structure they are trying to represent.</p>
+                        <h3>Arithmetic witness</h3>
+                        <p>CRT coordinate <code>z</code> — an invariant certificate proving algebraic commitment consistency. Reconstructed lazily, not eagerly recomputed.</p>
                         <div class="label-row">
-                            <span class="tag warn">Exact zero sets</span>
-                            <span class="tag warn">Lifted energies</span>
+                            <span class="tag warn">Lazy recompute</span>
+                            <span class="tag warn">Checkpoint reconstruction</span>
                         </div>
                     </div>
                     <div class="card">
                         <h3>Where heuristics enter</h3>
-                        <p>Heuristics mostly enter through optimization schedules, thresholding, ghost-residue semantics, and search budgets. In other words, the weak point is usually the solver strategy or extension regime, not the algebraic construction itself.</p>
+                        <p>Heuristics enter through: optimization schedules, thresholding, ghost-residue semantics, search ordering, and eager vs lazy witness computation decisions.</p>
                         <div class="label-row">
                             <span class="tag warn">Optimization</span>
-                            <span class="tag warn">Thresholds</span>
+                            <span class="tag warn">Search ordering</span>
                             <span class="tag warn">Semantic extensions</span>
                         </div>
                     </div>
@@ -1242,6 +1245,17 @@
                                 <div class="summary-kind">Strong</div>
                             </summary>
                             <div class="file-body">One integer z per group (row/col/box), not one giant z for the whole board. Each jump sets a cell value in exactly one group while preserving locked residues. Backtracking search with full rollback on failure.</div>
+                        </details>
+
+                        <details class="file-card">
+                            <summary>
+                                <div class="summary-main">
+                                    <strong>src/local_crt_repair.py</strong>
+                                    <span>The distilled kernel: general-purpose residue-preserving local state transitions.</span>
+                                </div>
+                                <div class="summary-kind">Kernel</div>
+                            </summary>
+                            <div class="file-body">LocalCRTGroup class with transition(), undo(), snapshot(), rollback_to(), and lazy get_witness(). The operational layer (residues + locks + history) is separated from the arithmetic witness layer (CRT coordinate z). This is the primitive that survived the entire research arc.</div>
                         </details>
 
                         <details class="file-card">
