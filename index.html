@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometric IF-ELSE | Notes on CRT Search, Experiments, and Code</title>
+    <title>Geometric IF-ELSE | Topology-driven exact repair for structured discrete systems</title>
     <script async defer src="https://beampipe.io/js/tracker.js" data-beampipe-domain="sethuiyer.github.io"></script>
-    <meta name="description" content="A blog-style overview of the Geometric IF-ELSE repository: CRT / Garner core math, experiments, benchmarks, and a guided map of the examples and code.">
+    <meta name="description" content="A three-layer architecture for constraint repair: ConstraintTopology (hypergraph), LocalCRTGroup (CRT arithmetic kernel), RepairEngine (generic lock-and-repair). Code, benchmarks, and demos.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap" rel="stylesheet">
@@ -706,7 +706,7 @@
                 <div class="brand-mark">CRT</div>
                 <div class="brand-copy">
                     <div class="brand-name">Geometric IF-ELSE</div>
-                    <div class="brand-sub">Constraint search, CRT repair, experiments, and code notes</div>
+                    <div class="brand-sub">Topology-driven exact repair for structured discrete systems</div>
                 </div>
             </div>
             <nav class="nav">
@@ -726,16 +726,18 @@
             <div class="hero-card">
                 <div class="hero-grid">
                     <div>
-                        <div class="eyebrow">Working Notes</div>
-                        <h1>Residue-preserving local state transitions over overlapping constraint groups.</h1>
+                        <div class="eyebrow">Research Codebase</div>
+                        <h1>Topology-driven exact repair for structured discrete systems.</h1>
                         <p class="hero-lead">
-                            This repository started from the idea of encoding discrete assignments as modular residues and repairing solved commitments with exact CRT jumps. It has since matured into a cleaner distillation: distributed exact commitment systems over overlapping local manifolds (rows, columns, boxes, lanes, etc.), where each local jump preserves all already-solved residues exactly.
+                            A three-layer architecture for constraint problems where you need to commit some variables and repair the rest without recomputing from scratch:
                         </p>
-                        <p class="hero-lead">
-                            The result is a layered research notebook more than a finished theory. There is a real mathematical core here, a set of useful exact-search demos, some exploratory framing around overlapping modular charts, and now a benchmark record showing where the approach helps and where standard tools still remain stronger.
-                        </p>
+                        <ul style="color: var(--text-soft); line-height: 1.8; padding-left: 20px; margin: 0 0 20px;">
+                            <li><strong>Constraint hypergraph</strong> — declare groups (rows, shifts, lanes, hosts) and variables with overlap positions. Groups enforce all-different or custom constraints.</li>
+                            <li><strong>CRT arithmetic kernel</strong> — each group gets a <code>LocalCRTGroup</code> that encodes state as modular residues. <code>transition(pos, val)</code> jumps to a new value while exactly preserving every previously-committed residue. O(1) checkpoint/rollback.</li>
+                            <li><strong>Repair engine</strong> — generic backtracking search on top. Lock a subset of variables, repair the rest. The separation of declarative topology from arithmetic witness from search means you describe the structure once and get solve + repair for free.</li>
+                        </ul>
                         <div class="callout scope" style="margin: 22px 0 0;">
-                            <strong>Why care?</strong> Because a lot of practical systems sit in the uncomfortable space between continuous learning and discrete commitments. Schedulers, dispatchers, allocators, safety controllers, and routing systems often need to make exact symbolic choices, keep some of them fixed, and repair the rest without tearing everything down. This repo is an attempt to find a compact mathematical language for that setting: one where discrete state stays interpretable, updates can preserve what already works, and search can still borrow some structure from analysis rather than starting from raw brute force every time. The most useful mental model is no longer "one scalar holds the state," but <strong>distributed exact commitment systems over overlapping local manifolds</strong> — exactly the setting where schedulers, allocators, and safety controllers live.
+                            <strong>Why care?</strong> Because a lot of practical systems — shift scheduling with sick calls, cloud VM rebalancing after host failure, airline crew recovery, graph recoloring, frequency reassignment — share the same shape: you have a working assignment, something small changes externally, and you need to <strong>patch around the commitment</strong> without tearing down everything and starting over. The CRT primitive gives you an exact arithmetic guarantee: you can change one variable while keeping specific others locked. Traditional backtracking can't give you that. This repo explores where that guarantee is useful and where it falls short.
                         </div>
                         <div class="button-row">
                             <a class="btn btn-primary" href="README.md">Read README</a>
@@ -743,28 +745,42 @@
                             <a class="btn btn-secondary" href="MONEY.md">Read MONEY.md</a>
                         </div>
                         <div class="hero-summary">
-                            <div class="pill">Exact core: residue-preserving local state transitions over overlapping constraint groups</div>
-                            <div class="pill">Best fit: lock-and-repair assignment problems</div>
-                            <div class="pill">Current verdict: useful primitive, not general breakthrough</div>
+                            <div class="pill">Core: topology-driven exact repair over overlapping constraint groups</div>
+                            <div class="pill">Best fit: lock-and-repair for small-domain assignment problems</div>
+                            <div class="pill">Verdict: useful specialized primitive, not a general solver</div>
                         </div>
                     </div>
 
                     <div class="hero-side">
                         <div class="side-card">
-                            <div class="side-kicker">Code-First Math Rating</div>
-                            <div class="score">68 / 100</div>
-                            <div class="score-note">Strong arithmetic core + clean local-group abstraction. The hierarchical version makes the lock-and-repair story genuinely practical. Still not a general solver, but a sharp specialized primitive. Audit lives in <a href="MATH.md">MATH.md</a>.</div>
+                            <div class="side-kicker">Architecture in Three Layers</div>
+                            <div style="display: grid; gap: 10px; margin-bottom: 10px;">
+                                <div style="background: var(--accent-soft); border-radius: 10px; padding: 10px 12px;">
+                                    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px;">ConstraintTopology</div>
+                                    <div style="font-size: 13px; color: var(--text-soft);">Declarative hypergraph: groups + variables + overlap positions</div>
+                                </div>
+                                <div style="background: var(--warm-soft); border-radius: 10px; padding: 10px 12px;">
+                                    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--warm); margin-bottom: 4px;">LocalCRTGroup</div>
+                                    <div style="font-size: 13px; color: var(--text-soft);">Arithmetic kernel: CRT residues + exact transition + O(1) rollback</div>
+                                </div>
+                                <div style="background: var(--success-soft); border-radius: 10px; padding: 10px 12px;">
+                                    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--success); margin-bottom: 4px;">RepairEngine</div>
+                                    <div style="font-size: 13px; color: var(--text-soft);">Generic solve + repair around locked commitments</div>
+                                </div>
+                            </div>
+                            <div class="score-note">Describe structure once, get solve + repair for free. <a href="MATH.md">Math audit</a> rates the arithmetic core at 68/100.</div>
                         </div>
                         <div class="side-card">
-                            <div class="side-kicker">Research Thread</div>
+                            <div class="side-kicker">Fit Profile</div>
                             <div class="score-note">
-                                Best read as a technical exploration of CRT-preserving search and repair. Some examples are surprisingly strong; others are better understood as intuition-building experiments.
+                                <strong>Best for:</strong> small-domain constraint problems (2-20 values per variable) where you need exact local modification of committed solutions — lock-and-repair.<br><br>
+                                <strong>Not for:</strong> large-domain optimization, continuous problems, or competing with CP-SAT on general allocation (benchmarks show 10-1000x gap on inventory).
                             </div>
                         </div>
                         <div class="side-card">
                             <div class="side-kicker">Repo Surface</div>
                             <div class="score-note">
-                                16+ source examples, 2 benchmark harnesses, math and commercialization notes, SAT and UNSAT visual artifacts, and a growing split between rigorous code and exploratory narrative.
+                                16+ source examples, 2 benchmark harnesses vs OR-Tools CP-SAT, math audit, commercialization notes, SAT/UNSAT visual artifacts. The topology abstraction (<code>constraint_topology.py</code> + <code>repair_engine.py</code> + <code>local_crt_repair.py</code>) is the distilled core — everything else is either a demo on top or exploratory framing.
                             </div>
                         </div>
                     </div>
@@ -817,7 +833,7 @@
                     <strong>Executive summary:</strong> the repository is easiest to appreciate if you treat it as an experiment in using modular arithmetic structure as an exact state-update primitive for constrained discrete systems. The most interesting practical idea here is not "prime topology replaces optimization," but "CRT-preserving updates may be useful for commitment-preserving repair."
                 </div>
                 <div class="callout scope" style="margin-top:18px;">
-                    <strong>The true core abstraction:</strong> residue-preserving local state transitions. Encode discrete state as residues of one or more CRT coordinates. Update a variable by jumping its residue exactly, with no approximation, while preserving all other committed residues. That is the mechanism — everything else (cosine losses, manifold language, SAT landscapes) is either a smooth objective built on top of it or a metaphorical framing stretched over it.
+                    <strong>The true core abstraction:</strong> a three-layer architecture — <code>ConstraintTopology</code> (declarative hypergraph), <code>LocalCRTGroup</code> (arithmetic witness with exact residue-preserving transitions), <code>RepairEngine</code> (generic backtracking + lock-and-repair). Encode discrete state as residues of CRT coordinates. Update a variable by jumping its residue exactly while preserving all committed residues. The layers separate <em>what the structure is</em> from <em>how the arithmetic works</em> from <em>how search and repair operate</em>. Everything else in the repo (cosine losses, manifold language, SAT landscapes) is either a demo built on top of these layers or metaphorical framing stretched over them.
                 </div>
             </section>
 
@@ -1250,6 +1266,28 @@
                         <details class="file-card">
                             <summary>
                                 <div class="summary-main">
+                                    <strong>src/constraint_topology.py</strong>
+                                    <span>Declarative overlap-constraint hypergraph builder.</span>
+                                </div>
+                                <div class="summary-kind">Topology</div>
+                            </summary>
+                            <div class="file-body">Declare groups, variables, and connections. Query the structure, validate, materialize into LocalCRTGroup instances. Includes factories for Sudoku, Latin Square, and N-Queens. The topology layer is the declarative front-end: "what is the structure?"</div>
+                        </details>
+
+                        <details class="file-card">
+                            <summary>
+                                <div class="summary-main">
+                                    <strong>src/repair_engine.py</strong>
+                                    <span>Generic backtracking solver + repair engine on top of ConstraintTopology.</span>
+                                </div>
+                                <div class="summary-kind">Engine</div>
+                            </summary>
+                            <div class="file-body">solve() for full assignment, repair(locked_vars) for local repair around a committed subset. Includes DOT export for hypergraph visualization and a nurse scheduling demo with sick-call repair. The search layer: "how do we find a solution?"</div>
+                        </details>
+
+                        <details class="file-card">
+                            <summary>
+                                <div class="summary-main">
                                     <strong>src/local_crt_repair.py</strong>
                                     <span>The distilled kernel: general-purpose residue-preserving local state transitions.</span>
                                 </div>
@@ -1278,7 +1316,7 @@
 
                         <div class="card">
                             <h3>How to read this repo productively</h3>
-                            <p>Start with the benchmark files and the assignment demos. Then read the arithmetic core. Only after that should you read the topology language and podcast-style docs, because those are the most likely to overstate the evidence.</p>
+                            <p>Start with the topology abstraction (<code>constraint_topology.py</code> → <code>local_crt_repair.py</code> → <code>repair_engine.py</code>). That's the distilled core. Then read the benchmark files and assignment demos. Only after that should you read the exploratory docs, which stretch the framing further than the code can support.</p>
                         </div>
 
                         <div class="code-panel">
@@ -1288,13 +1326,14 @@
                             </div>
                             <pre>1. README.md
 2. MATH.md
-3. src/prime_hypergraph_timetabling.py
-4. src/prime_inventory_allocation.py
-5. src/large_scale_benchmark.py
-6. src/benchmark_vs_cpsat.py
-7. src/prime_logic_nn.py
-8. src/garner_navigation.py
-9. Everything else, with caution</pre>
+3. src/constraint_topology.py       ← declarative hypergraph
+4. src/local_crt_repair.py          ← CRT arithmetic kernel
+5. src/repair_engine.py             ← generic solve + repair
+6. src/prime_hypergraph_timetabling.py
+7. src/prime_inventory_allocation.py
+8. src/large_scale_benchmark.py
+9. src/benchmark_vs_cpsat.py
+10. Everything else</pre>
                         </div>
 
                         <div class="callout danger">
@@ -1360,7 +1399,7 @@
 
             <section>
                 <div class="callout scope">
-                    <strong>One clean way to describe the project:</strong> "A research codebase exploring residue-based state encoding and CRT-preserving exact updates for constrained discrete systems, with examples, benchmarks, and a growing sense of where the idea is strongest."
+                    <strong>One clean way to describe the project:</strong> "A research codebase exploring topology-driven exact repair for structured discrete systems — a three-layer architecture (hypergraph topology, CRT arithmetic kernel, generic repair engine) that lets you lock committed variables and repair the rest with exact arithmetic guarantees."
                 </div>
             </section>
         </main>
@@ -1368,7 +1407,7 @@
         <footer>
             <div class="footer-card">
                 <div class="footer-copy">
-                    Geometric IF-ELSE reads best as an evolving technical notebook: one part arithmetic mechanism, one part search experiment, one part attempt to find the right language for what the code is actually doing.
+                    Geometric IF-ELSE reads best as an evolving technical notebook: one part topology abstraction (hypergraph + CRT kernel + repair engine), one part search experiment, one part attempt to find the right language for lock-and-repair constraint solving.
                 </div>
                 <div class="footer-links">
                     <a href="README.md">README</a>
