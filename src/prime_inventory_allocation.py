@@ -206,6 +206,7 @@ class PrimeInventoryAllocator:
     def solve(
         self,
         locked_assignments: Optional[Dict[int, int]] = None,
+        node_limit: Optional[int] = None,
     ) -> Tuple[Optional[int], Optional[Dict[int, int]], int, Optional[int]]:
         locked_assignments = dict(locked_assignments or {})
         stock_remaining = dict(self.stock_capacity)
@@ -257,6 +258,9 @@ class PrimeInventoryAllocator:
         ) -> None:
             nonlocal nodes, best_cost, best_assignment, best_z
             nodes += 1
+
+            if node_limit is not None and nodes > node_limit:
+                return
 
             if best_cost is not None and lower_bound(current_assignment) >= best_cost:
                 return

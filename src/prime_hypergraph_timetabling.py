@@ -186,12 +186,15 @@ class PrimeHypergraphTimetabler:
         scored.sort()
         return [option_idx for _, option_idx in scored]
 
-    def solve(self) -> Tuple[Optional[int], Optional[Dict[int, int]], int]:
+    def solve(self, node_limit: Optional[int] = None) -> Tuple[Optional[int], Optional[Dict[int, int]], int]:
         attempts = 0
 
         def backtrack(z: int, assignment: Dict[int, int], solved_order: List[int]) -> Tuple[Optional[int], Optional[Dict[int, int]]]:
             nonlocal attempts
             attempts += 1
+
+            if node_limit is not None and attempts > node_limit:
+                return None, None
 
             if len(assignment) == self.n:
                 ok, _ = self.verify_assignment(assignment)

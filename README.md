@@ -17,6 +17,29 @@ Current code-first math rating: **61/100**.
 
 See the root-level [MATH.md](MATH.md) for the full audit, including exact derivations and implementation gaps.
 
+## Research Summary
+
+Current verdict: **good research direction, weak breakthrough claim**.
+
+- The strongest part of the repo is the exact CRT / Garner machinery and the residue-preserving jump updates.
+- That mechanism works well as a **lock-and-repair assignment primitive** on structured small-alphabet problems.
+- The weaker part is the broader claim that the framework outperforms standard combinatorial optimization in general.
+
+### Benchmark Takeaway
+
+We ran direct benchmarks against **OR-Tools CP-SAT** on the same synthetic timetabling and inventory-allocation instances.
+
+- On planted-feasible timetabling instances, the CRT search was competitive and often faster at the tested small-to-medium sizes.
+- On inventory allocation, **CP-SAT was decisively better** on runtime and sometimes on objective quality once CRT search hit its node budget.
+- The honest conclusion is that this framework is best understood as a **specialized exact repair/search idea**, not a replacement for mature exact solvers.
+
+See:
+
+- [MATH.md](MATH.md) for the mathematical audit
+- [MONEY.md](MONEY.md) for commercial positioning
+- `src/large_scale_benchmark.py` for internal scaling tests
+- `src/benchmark_vs_cpsat.py` for the direct CP-SAT comparison
+
 ---
 
 ## The Core Insight
@@ -161,6 +184,8 @@ src/
 ├── prime_timetable.py         # University class scheduler
 ├── prime_hypergraph_timetabling.py # NP-hard timetabling via CRT-preserving jumps
 ├── prime_inventory_allocation.py # Flipkart-style order promising with disruption repair
+├── large_scale_benchmark.py    # Synthetic scaling tests for timetabling and inventory
+├── benchmark_vs_cpsat.py       # Direct benchmark against OR-Tools CP-SAT
 ├── prime_mastermind.py         # Mastermind codebreaker (100/100 solved)
 ├── prime_sat_landscape.py      # 3-SAT visualization as frustration geometry
 ├── extract_sat_solutions.py    # Extract Boolean assignments from coordinates
