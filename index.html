@@ -727,15 +727,15 @@
                 <div class="hero-grid">
                     <div>
                         <div class="eyebrow">Working Notes</div>
-                        <h1>Discrete assignments, encoded as residues, repaired with exact jumps.</h1>
+                        <h1>Residue-preserving local state transitions over overlapping constraint groups.</h1>
                         <p class="hero-lead">
-                            This repository started from a simple but unusual idea: represent conditional logic and structured constraint systems through one scalar coordinate $z$, decode state by modular residues, and use Chinese Remainder Theorem structure to preserve solved commitments exactly.
+                            This repository started from the idea of encoding discrete assignments as modular residues and repairing solved commitments with exact CRT jumps. It has since matured into a cleaner distillation: distributed exact commitment systems over overlapping local manifolds (rows, columns, boxes, lanes, etc.), where each local jump preserves all already-solved residues exactly.
                         </p>
                         <p class="hero-lead">
-                            The result is a layered research notebook more than a finished theory. There is a real mathematical core here, a set of useful exact-search demos, some ambitious framing around topology and manifolds, and now a benchmark record showing where the approach helps and where standard tools still remain stronger.
+                            The result is a layered research notebook more than a finished theory. There is a real mathematical core here, a set of useful exact-search demos, some exploratory framing around overlapping modular charts, and now a benchmark record showing where the approach helps and where standard tools still remain stronger.
                         </p>
                         <div class="callout scope" style="margin: 22px 0 0;">
-                            <strong>Why care?</strong> Because a lot of practical systems sit in the uncomfortable space between continuous learning and discrete commitments. Schedulers, dispatchers, allocators, safety controllers, and routing systems often need to make exact symbolic choices, keep some of them fixed, and repair the rest without tearing everything down. This repo is an attempt to find a compact mathematical language for that setting: one where discrete state stays interpretable, updates can preserve what already works, and search can still borrow some structure from analysis rather than starting from raw brute force every time.
+                            <strong>Why care?</strong> Because a lot of practical systems sit in the uncomfortable space between continuous learning and discrete commitments. Schedulers, dispatchers, allocators, safety controllers, and routing systems often need to make exact symbolic choices, keep some of them fixed, and repair the rest without tearing everything down. This repo is an attempt to find a compact mathematical language for that setting: one where discrete state stays interpretable, updates can preserve what already works, and search can still borrow some structure from analysis rather than starting from raw brute force every time. The most useful mental model is no longer "one scalar holds the state," but <strong>distributed exact commitment systems over overlapping local manifolds</strong> — exactly the setting where schedulers, allocators, and safety controllers live.
                         </div>
                         <div class="button-row">
                             <a class="btn btn-primary" href="README.md">Read README</a>
@@ -743,7 +743,7 @@
                             <a class="btn btn-secondary" href="MONEY.md">Read MONEY.md</a>
                         </div>
                         <div class="hero-summary">
-                            <div class="pill">Exact core: CRT + Garner + residue-preserving jumps</div>
+                            <div class="pill">Exact core: residue-preserving local state transitions over overlapping constraint groups</div>
                             <div class="pill">Best fit: lock-and-repair assignment problems</div>
                             <div class="pill">Current verdict: useful primitive, not general breakthrough</div>
                         </div>
@@ -752,8 +752,8 @@
                     <div class="hero-side">
                         <div class="side-card">
                             <div class="side-kicker">Code-First Math Rating</div>
-                            <div class="score">61 / 100</div>
-                            <div class="score-note">Strong arithmetic core. Overreach in some theory and extensions. Audit lives in <a href="MATH.md">MATH.md</a>.</div>
+                            <div class="score">68 / 100</div>
+                            <div class="score-note">Strong arithmetic core + clean local-group abstraction. The hierarchical version makes the lock-and-repair story genuinely practical. Still not a general solver, but a sharp specialized primitive. Audit lives in <a href="MATH.md">MATH.md</a>.</div>
                         </div>
                         <div class="side-card">
                             <div class="side-kicker">Research Thread</div>
@@ -787,10 +787,10 @@
                 <div class="grid three">
                     <div class="card">
                         <h3>The sturdy part</h3>
-                        <p>The cleanest part of the project is the arithmetic core: encode choices as residues, reconstruct exact coordinates with CRT / Garner, and preserve already-solved decisions using incremental CRT jumps.</p>
+                        <p>The cleanest part of the project is the arithmetic primitive: encode choices as residues inside local constraint groups (rows, columns, boxes, lanes, etc.), then use exact incremental CRT jumps to set new values while preserving every already-solved residue in that group exactly. No global modulus explosion. No tearing down solved commitments.</p>
                         <div class="label-row">
                             <span class="tag success">Exact arithmetic</span>
-                            <span class="tag success">Interpretable state</span>
+                            <span class="tag success">Local jumps only</span>
                             <span class="tag success">Lock-and-repair</span>
                         </div>
                     </div>
