@@ -6,6 +6,17 @@
 
 This project explores what happens when you force neural networks to navigate discrete Boolean logic through continuous prime-number Riemann surfaces — and what the terrain itself teaches you about constraint satisfaction, UNSAT geometry, and why some problems are literally impossible to collapse.
 
+## Math Audit
+
+Current code-first math rating: **61/100**.
+
+- The CRT / Garner core is the strongest part and holds up well.
+- The incremental residue-preserving jump used in the search solvers is valid and useful.
+- The cosine wave loss is a real smooth surrogate, but not an exact logical encoding.
+- Several extensions over-claim relative to the implementation.
+
+See the root-level [MATH.md](MATH.md) for the full audit, including exact derivations and implementation gaps.
+
 ---
 
 ## The Core Insight
@@ -76,6 +87,8 @@ Where $v_i$ are calculated using modular multiplicative inverses. This is **full
 | Dual-Loss Architecture | Combine MSE-to-Garner with wave snapping | Massive convergence improvement | "Highway + snap" worked better than wave loss alone |
 | N-Queens | Encode queen positions with primes and CRT decoding | Solved full 8-Queens with exact coordinate extraction | Constraint satisfaction can be navigated geometrically with structured jumps |
 | Timetable Scheduling | Assign classes to rooms/times under conflicts | Produced valid non-overlapping schedule | Resource allocation naturally fits manifold-style constraint encoding |
+| Hypergraph Timetabling | Solve an NP-hard course-placement problem with room/instructor/student conflicts | Exact valid timetable found via CRT-preserving jumps and backtracking | The framework is strongest on small-alphabet NP-hard assignment problems where solved decisions must be preserved exactly |
+| Inventory Allocation | Allocate e-commerce orders to fulfillment plans under stock and lane constraints | Valid low-cost plan found, then repaired under disruption while preserving locked promises | Non-scheduling order promising is a strong commercial fit for exact lock-and-repair |
 | Mastermind Solver | Use residues to represent code states and deductions | 100/100 games solved, ~4.47 average turns | Constraint elimination behaves like manifold collapse |
 | SAT Landscape | Turn SAT clauses into penalty-wave geometry | Produced visible valleys/mountains and satisfying basins | SAT problems can literally be visualized as frustration terrains |
 | SAT Assignment Extraction | Decode truth assignments from coordinates | Successfully recovered Boolean assignments | CRT decoding is interpretable and reversible |
@@ -146,6 +159,8 @@ src/
 ├── traffic_controller.py      # Safety-critical 4-way intersection (7/7 passed)
 ├── prime_n_queens.py          # 8-Queens solver using monodromy jumps
 ├── prime_timetable.py         # University class scheduler
+├── prime_hypergraph_timetabling.py # NP-hard timetabling via CRT-preserving jumps
+├── prime_inventory_allocation.py # Flipkart-style order promising with disruption repair
 ├── prime_mastermind.py         # Mastermind codebreaker (100/100 solved)
 ├── prime_sat_landscape.py      # 3-SAT visualization as frustration geometry
 ├── extract_sat_solutions.py    # Extract Boolean assignments from coordinates
