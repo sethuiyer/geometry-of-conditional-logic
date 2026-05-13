@@ -814,7 +814,10 @@
                 </div>
 
                 <div class="callout scope" style="margin-top:18px;">
-                    <strong>Executive summary:</strong> the repository is easiest to appreciate if you treat it as an experiment in using modular arithmetic structure as an exact state-update primitive for constrained discrete systems. The most interesting practical idea here is not “prime topology replaces optimization,” but “CRT-preserving updates may be useful for commitment-preserving repair.”
+                    <strong>Executive summary:</strong> the repository is easiest to appreciate if you treat it as an experiment in using modular arithmetic structure as an exact state-update primitive for constrained discrete systems. The most interesting practical idea here is not "prime topology replaces optimization," but "CRT-preserving updates may be useful for commitment-preserving repair."
+                </div>
+                <div class="callout scope" style="margin-top:18px;">
+                    <strong>The true core abstraction:</strong> residue-preserving local state transitions. Encode discrete state as residues of one or more CRT coordinates. Update a variable by jumping its residue exactly, with no approximation, while preserving all other committed residues. That is the mechanism — everything else (cosine losses, manifold language, SAT landscapes) is either a smooth objective built on top of it or a metaphorical framing stretched over it.
                 </div>
             </section>
 
@@ -1058,10 +1061,18 @@
                     </div>
                     <div class="card">
                         <h3>Analogy-heavy extensions</h3>
-                        <p><strong>prime_word_ladder.py</strong>, <strong>prime_alien_dict.py</strong>, <strong>prime_regex_manifold.py</strong>, and <strong>prime_sudoku.py</strong> stretch the framing beyond the cleanest arithmetic core.</p>
+                        <p><strong>prime_word_ladder.py</strong>, <strong>prime_alien_dict.py</strong>, and <strong>prime_regex_manifold.py</strong> stretch the framing beyond the cleanest arithmetic core.</p>
                         <div class="label-row">
                             <span class="tag warn">Mixed rigor</span>
-                            <span class="tag danger">Contains implementation caveats</span>
+                            <span class="tag danger">Metaphor stretched</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Multi-dimensional Sudoku</h3>
+                        <p><strong>crt_sudoku_hierarchical.py</strong> uses distributed CRT jumps across row, column, and box groups. Each group is its own local CRT microspace. This is the multi-dimensional version of the method — not one giant z, but a hierarchy of smaller exact jumps.</p>
+                        <div class="label-row">
+                            <span class="tag success">Exact backtracking</span>
+                            <span class="tag success">Local jumps</span>
                         </div>
                     </div>
                     <div class="card">
@@ -1214,12 +1225,23 @@
                         <details class="file-card">
                             <summary>
                                 <div class="summary-main">
-                                    <strong>src/prime_word_ladder.py / prime_alien_dict.py / prime_regex_manifold.py / prime_sudoku.py</strong>
+                                    <strong>src/prime_word_ladder.py / prime_alien_dict.py / prime_regex_manifold.py</strong>
                                     <span>Later extensions with mixed rigor, useful mostly as framing experiments.</span>
                                 </div>
                                 <div class="summary-kind">Mixed</div>
                             </summary>
-                            <div class="file-body">These are the first files to read skeptically. Some are standard algorithms in repo vocabulary; Sudoku also breaks the prime assumption in implementation.</div>
+                            <div class="file-body">Some are standard algorithms in repo vocabulary; the manifold language is stretched in these files.</div>
+                        </details>
+
+                        <details class="file-card">
+                            <summary>
+                                <div class="summary-main">
+                                    <strong>src/crt_sudoku_hierarchical.py</strong>
+                                    <span>Multi-dimensional CRT Sudoku: distributed exact jumps over row/col/box manifolds.</span>
+                                </div>
+                                <div class="summary-kind">Strong</div>
+                            </summary>
+                            <div class="file-body">One integer z per group (row/col/box), not one giant z for the whole board. Each jump sets a cell value in exactly one group while preserving locked residues. Backtracking search with full rollback on failure.</div>
                         </details>
 
                         <details class="file-card">
