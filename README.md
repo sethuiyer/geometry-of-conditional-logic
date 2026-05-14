@@ -1,10 +1,52 @@
-# Geometric IF-ELSE: Continuous Prime-Topology Logic
+# Geometric IF-ELSE: A Local Repair Calculus for Structured Discrete State Systems Using Ultrametric Spaces
 
-> **Every `if/else` statement you've ever typed is a flat shadow of a magnificent continuous manifold.**
+> **Geometric IF-ELSE is branching computation interpreted as ultrametric local repair over overlapping discrete consistency domains. The ELSE branch is not a control-flow fork — it is the shortest valid path through hierarchical consistency space preserving the deepest possible commitment structure.**
 
 **A [Shunyabar Labs](https://shunyabar.foo) project.**
 
-This project explores what happens when you force neural networks to navigate discrete Boolean logic through continuous prime-number Riemann surfaces — and what the terrain itself teaches you about constraint satisfaction, UNSAT geometry, and why some problems are literally impossible to collapse.
+The framework combines three ideas. **CRT** gives the exact invariant-preserving jump (`z' = z + kM`). **p-adic ultrametric geometry** gives the locality metric — two states are close if they preserve many nested commitments. **Matching / flow** gives the minimal repair path. Distributed actors give the execution model.
+
+The project started by asking whether conditional logic had inherent continuous geometry, and ended with a verified ultrametric retrieval system that beats BM25 by +2.35 depth layers on real literature — every link in the chain experimentally confirmed.
+
+### The Mature Definition
+
+| Component | Role |
+|---|---|
+| Matching / augmenting paths | compute minimal repair chain |
+| CRT | exact invariant-preserving displacement |
+| p-adics / ultrametric | locality metric |
+| Topology | legal overlap structure |
+| Actors | distributed execution |
+
+**Claim:** Ultrametric distance measures preserved symbolic structure under substitution, whereas cosine similarity measures smooth semantic proximity. These are different geometries. Systems that need both benefit from combining them explicitly.
+
+### Experimental Summary
+
+| Experiment | Result |
+|---|---|
+| `padic_check.py` | Ultrametric inequality: 0 violations in 2000 triples |
+| `nn_ultrametric.py` | Cosine cannot separate shallow from deep semantic substitutions |
+| `ultrametric_retrieval.py` | Ultra depth=3.00 vs BM25 depth=1.28 on synthetic corpus |
+| `ultrametric_gutenberg.py` | Ultra depth=3.73 vs BM25 depth=1.38 on 750 real docs (+2.35 layers) |
+| `padic_sudoku.py` | Backtracking solver with per-move p-adic valuation tracking |
+| `padic_problem.py` | Patch-vs-violate DP with ultrametric cost (verified against brute force) |
+| Traffic controller | 7/7 safety scenarios, zero violations |
+| 8-Queens | Solved with coordinate z = 2,372,774,783 |
+| Mastermind | 100/100 games, 4.47 average turns |
+
+### Papers / Docs
+
+- `PADIC.md` — formal p-adic repair calculus
+- `NEURAL.md` — neural + ultrametric bridge
+- `AI.md` — ultrametric retrieval architecture and neuro-symbolic vision
+- `MEMORY.md` — ultrametric memory for LLM agents
+- `STRUCTURAL_RETRIEVAL.md` — cross-domain failure pattern (code, proofs, planning)
+- `MATH.md` — math audit (61/100), code-first derivations
+- `CRITIC.md` — response to Hacker News critique
+
+### Module
+
+- `ultramem.py` — `UltraMeM` class: hierarchical feature extraction, ultrametric ranking, repair with rollback
 
 ---
 
@@ -449,8 +491,6 @@ this is fundamentally a **transactional local repair database for scheduling geo
 
 ## The Meta-Patterns
 
-## The Meta-Patterns
-
 Across all experiments, the same phenomena kept appearing:
 
 | Repeated Phenomenon | Meaning |
@@ -470,44 +510,60 @@ Across all experiments, the same phenomena kept appearing:
 
 ```
 src/
-├── prime_logic_nn.py          # Basic 3-prime NN learning [1,0,1] logic
-├── hard_prime_maze.py          # 5-prime stress test with local minima traps
-├── garner_navigation.py        # Garner's algorithm as "teleporter" for 7 primes
-├── traffic_controller.py      # Safety-critical 4-way intersection (7/7 passed)
-├── prime_n_queens.py          # 8-Queens solver using monodromy jumps
-├── prime_timetable.py         # University class scheduler
+├── prime_logic_nn.py              # Basic 3-prime NN learning [1,0,1] logic
+├── hard_prime_maze.py              # 5-prime stress test with local minima traps
+├── garner_navigation.py            # Garner's algorithm as "teleporter" for 7 primes
+├── traffic_controller.py          # Safety-critical 4-way intersection (7/7 passed)
+├── prime_n_queens.py              # 8-Queens solver using monodromy jumps
+├── prime_timetable.py             # University class scheduler
 ├── prime_hypergraph_timetabling.py # NP-hard timetabling via CRT-preserving jumps
-├── prime_inventory_allocation.py # Flipkart-style order promising with disruption repair
-├── large_scale_benchmark.py    # Synthetic scaling tests for timetabling and inventory
-├── benchmark_vs_cpsat.py       # Direct benchmark against OR-Tools CP-SAT
-├── prime_mastermind.py         # Mastermind codebreaker (100/100 solved)
-├── prime_sat_landscape.py      # 3-SAT visualization as frustration geometry
-├── extract_sat_solutions.py    # Extract Boolean assignments from coordinates
-├── verify_sat.py               # Cross-check manifold valleys against Boolean SAT
-├── prime_pigeonhole.py         # Pigeonhole principle demonstration (UNSAT proof)
-├── prime_pigeonhole_strict.py  # Strict binary version (proved UNSAT)
-├── prime_word_ladder.py        # Word Ladder II — multiple equal-energy valleys
-├── prime_alien_dict.py         # Topological ordering with cycle detection
-├── prime_regex_manifold.py     # NFA as multi-sheet manifold navigation
-├── crt_sudoku_hierarchical.py  # Multi-dimensional Sudoku via distributed CRT jumps (supersedes prime_sudoku.py)
-├── cpu_scheduling.py          # 4-core CPU scheduler with CRT lock-and-repair, ER-style architecture
-├── crt_group.erl              # Erlang gen_server: one actor per constraint group
-├── scheduler_topology.erl     # Erlang coordinator: global z, cache-affinity shield, repair dispatch
-├── constraint_topology.ex     # Elixir module: declarative overlap graph for distributed CRT repair
-├── constraint_group.ex        # Elixir GenServer: local constraint domain with lock/rollback
-├── repair_transaction.ex      # Elixir: atomic multi-group staged repair with commit/rollback
-└── repair_coordinator.ex      # Elixir GenServer: global z, CRT jump dispatch, repair log
+├── prime_inventory_allocation.py  # Flipkart-style order promising with disruption repair
+├── large_scale_benchmark.py       # Synthetic scaling tests for timetabling and inventory
+├── benchmark_vs_cpsat.py          # Direct benchmark against OR-Tools CP-SAT
+├── prime_mastermind.py            # Mastermind codebreaker (100/100 solved)
+├── prime_sat_landscape.py         # 3-SAT visualization as frustration geometry
+├── extract_sat_solutions.py       # Extract Boolean assignments from coordinates
+├── verify_sat.py                  # Cross-check manifold valleys against Boolean SAT
+├── prime_pigeonhole.py            # Pigeonhole principle demonstration (UNSAT proof)
+├── prime_pigeonhole_strict.py     # Strict binary version (proved UNSAT)
+├── prime_word_ladder.py           # Word Ladder II — multiple equal-energy valleys
+├── prime_alien_dict.py            # Topological ordering with cycle detection
+├── prime_regex_manifold.py        # NFA as multi-sheet manifold navigation
+├── crt_sudoku_hierarchical.py     # Multi-dimensional Sudoku via distributed CRT jumps
+├── cpu_scheduling.py              # 4-core CPU scheduler with CRT lock-and-repair
+├── crt_group.erl                  # Erlang gen_server: one actor per constraint group
+├── scheduler_topology.erl         # Erlang coordinator: global z, cache-affinity shield
+├── constraint_topology.ex         # Elixir module: declarative overlap graph
+├── constraint_group.ex            # Elixir GenServer: local constraint domain
+├── repair_transaction.ex          # Elixir: atomic multi-group staged repair
+├── repair_coordinator.ex          # Elixir GenServer: global z, CRT jump dispatch
+├── padic_check.py                 # Ultrametric inequality verification (0 violations)
+├── padic_problem.py               # Patch-vs-violate DP with ultrametric cost
+├── padic_sudoku.py                # p-adic Sudoku solver with per-move valuation
+├── padic_nn_sudoku.py             # Neuro-symbolic Sudoku (NN proposes, CRT validates)
+├── nn_ultrametric.py              # Word2Vec cosine vs ultrametric comparison
+├── ultrametric_retrieval.py       # Ultrametric retrieval vs BM25 (synthetic)
+├── ultrametric_gutenberg.py       # Ultrametric retrieval vs BM25 (Project Gutenberg)
+└── ultramem.py                    # UltraMeM: ultrametric memory module
 
 docs/
-├── MATH.md                    # Mathematical formulation and PyTorch implementation
-├── MATH2.md                   # Deep dive: Lambert W failure, Riemann surfaces, CRT
-├── podcast.md                 # Development narrative (full podcast transcript)
-└── codingsession.md          # Additional conversation logs
+├── MATH.md                        # Mathematical formulation and PyTorch implementation
+├── MATH2.md                       # Deep dive: Lambert W failure, Riemann surfaces, CRT
+├── podcast.md                     # Development narrative (full podcast transcript)
+└── codingsession.md              # Additional conversation logs
 
-index.html                    # Visual showcase with KaTeX math rendering
-sat_landscape.png             # SAT frustration geometry visualization
-pigeonhole_frustration.png   # UNSAT as irreducible geometric frustration
-CRITIC.md                    # Response to Hacker News critique
+Root:
+├── PADIC.md                       # p-adic repair calculus
+├── NEURAL.md                      # Neural + ultrametric bridge
+├── AI.md                          # Ultrametric retrieval architecture
+├── MEMORY.md                      # Ultrametric memory for LLM agents
+├── STRUCTURAL_RETRIEVAL.md        # Cross-domain retrieval failure patterns
+├── index.html                     # Visual showcase with KaTeX math rendering
+├── CRITIC.md                      # Response to Hacker News critique
+├── MONEY.md                       # Commercial positioning
+├── MATH.md                        # Math audit
+├── CIRCLE.md                      # Geometric interpretation
+└── USECASE.md                     # Use case exploration
 ```
 
 ---
@@ -537,6 +593,16 @@ Congruence invariance in discrete arithmetic is **exactly equivalent** to monodr
 
 ---
 
-## The Question This Opened
+## What This Became
 
-> What other ancient discrete algorithms are actually just the flat collapsed shadows of magnificent continuous multi-dimensional geometries waiting to be discovered?
+The project started with a hunch — "maybe branching has structure" — and ended with a verified chain:
+
+```
+algebra (CRT) → geometry (p-adics) → systems (repair calculus) → 
+neural bridge (Word2Vec) → retrieval proof (Gutenberg) → 
+memory module (UltraMeM)
+```
+
+Every link is experimentally confirmed. The strongest result: **ultrametric retrieval preserves 2.35 more depth layers than BM25 on real literature**, because it measures preserved hierarchical structure instead of surface token overlap. That's not a metaphor — it's measured, reproducible, and cross-domain.
+
+The repo remains honest about what it isn't: not a universal solver, not a replacement for transformers, not a P=NP claim. It's a **structured retrieval and repair layer** for systems where structure preservation matters more than semantic proximity — code search, theorem retrieval, planning memory, agent consistency, workflow repair.
