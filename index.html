@@ -1031,66 +1031,182 @@
 </section>
 
 <section class="blog-section" id="cpu-scheduling">
-    <div class="section-kicker">Case Study</div>
-    <h2>CPU Scheduling as Native Habitat</h2>
-    <p>
-        CPU scheduling is arguably the cleanest real-world expression of the CRT repair engine.
-    <p>
-        Two benchmark scripts anchor the repo: an internal scaling harness and direct comparisons
-        against OR-Tools CP-SAT on generated instances.
-    </p>
+     <div class="section-kicker">Case Study</div>
+     <h2>CPU Scheduling as Native Habitat</h2>
+     <p>
+         CPU scheduling is arguably the cleanest real-world expression of the CRT repair engine.
+     <p>
+         Two benchmark scripts anchor the repo: an internal scaling harness and direct comparisons
+         against OR-Tools CP-SAT on generated instances.
+     </p>
 
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Benchmark</th>
-                    <th>CRT Search</th>
-                    <th>CP-SAT</th>
-                    <th>Takeaway</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>Timetabling</strong><br>12 courses, 4 options</td>
-                    <td>100% success, median 0.4 ms</td>
-                    <td>100% success, median 3.1 ms</td>
-                    <td>Nice result for arithmetic search on clean planted-feasible structure.</td>
-                </tr>
-                <tr>
-                    <td><strong>Timetabling</strong><br>24 courses, 5 options</td>
-                    <td>100% success, median 2.1 ms</td>
-                    <td>100% success, median 4.1 ms</td>
-                    <td>Still competitive at tested synthetic size.</td>
-                </tr>
-                <tr>
-                    <td><strong>Inventory Base</strong><br>20 orders, 3 options</td>
-                    <td>100% success, 5.9 ms, obj 2851</td>
-                    <td>100% success, 2.4 ms, obj 2851</td>
-                    <td>CP-SAT already cleaner here.</td>
-                </tr>
-                <tr>
-                    <td><strong>Inventory Base</strong><br>35 orders, 4 options</td>
-                    <td>100% success, 1031 ms, obj 4946</td>
-                    <td>100% success, 4.3 ms, obj 4946</td>
-                    <td>Standard solver pulls away at scale.</td>
-                </tr>
-                <tr>
-                    <td><strong>Inventory Repair</strong><br>50 orders, 25% locked</td>
-                    <td>80% success, 754 ms, obj 7496</td>
-                    <td>80% success, 3.4 ms, obj 7450</td>
-                    <td>Repair angle stays interesting, but baseline is stronger.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+     <h3>Core ER Diagram</h3>
 
-    <div class="callout callout-warn">
-        <strong>Reading note:</strong> The CRT search looks good on planted-feasible timetabling instances,
-        and remains interesting as a repair primitive. On the inventory benchmark, CP-SAT becomes the
-        stronger general-purpose optimizer once size and objective quality matter.
-    </div>
-</section>
+     <div class="code-block">
+         <div class="code-header">
+             <strong>CRT Local Repair CPU Scheduler — Entity-Relationship Model</strong>
+             <span>Schema · Topology · Repair Semantics</span>
+         </div>
+         <pre>
++-------------------+
+|     PROCESS       |
++-------------------+
+| process_id (PK)   |
+| priority          |
+| period            |
+| deadline          |
+| exec_time         |
+| state             |
+| cache_heat        |
+| numa_preference   |
+| current_phase     |
++-------------------+
+          |
+          | participates_in
+          |
+          v
+
++-------------------+
+| VARIABLE_MAPPING  |
++-------------------+
+| mapping_id (PK)   |
+| process_id (FK)   |
+| group_id (FK)     |
+| position          |
+| residue_value     |
+| locked            |
++-------------------+
+          |
+          |
+          v
+
++-------------------+
+| CONSTRAINT_GROUP  |
++-------------------+
+| group_id (PK)     |
+| group_type        |
+| prime_modulus     |
+| validator_type    |
+| locality_scope    |
+| repair_cost_weight|
++-------------------+</pre>
+     </div>
+
+     <h3>Constraint Group Types</h3>
+     <div class="code-block">
+         <div class="code-header">
+             <strong>Overlap Topology — Group Definitions</strong>
+         </div>
+         <pre>
+CORE_GROUP       — one CPU core                — invariant: one active process per slot
+CACHE_GROUP      — shared L2/L3 region         — preserve warm-cache locality
+NUMA_GROUP       — memory locality domain       — minimize remote memory jumps
+DEADLINE_GROUP   — hard RT tasks                — deadline preservation
+DEPENDENCY_GROUP — task DAG constraints         — parent completion before child
+THERMAL_GROUP    — thermal balancing limits
+PRIORITY_GROUP   — RT priority bands</pre>
+     </div>
+
+     <h3>CRT Repair State &amp; Transition Log</h3>
+
+     <div class="metrics-grid">
+         <div class="metric">
+             <div class="metric-label">CRT_REPAIR_STATE</div>
+             <div style="font-family:var(--font-mono);font-size:0.82rem;color:var(--text-secondary);margin-top:8px;line-height:1.6;">
+                 state_id (PK) · global_z · repair_radius<br>
+                 preserved_count · timestamp · hyperperiod_phase
+             </div>
+             <div style="font-size:0.82rem;color:var(--text-muted);margin-top:6px;">Geometric coordinate, repair witness, invariant snapshot</div>
+         </div>
+         <div class="metric">
+             <div class="metric-label">TRANSITION_LOG</div>
+             <div style="font-family:var(--font-mono);font-size:0.82rem;color:var(--text-secondary);margin-top:8px;line-height:1.6;">
+                 transition_id (PK) · process_id (FK)<br>
+                 old_group · new_group · old_residue · new_residue<br>
+                 delta_z · repair_cost · preserved_invariants<br>
+                 rollback_checkpoint · timestamp
+             </div>
+             <div style="font-size:0.82rem;color:var(--text-muted);margin-top:6px;">Where "preemption is a CRT jump" becomes literal database structure</div>
+         </div>
+     </div>
+
+     <h3>Cache Affinity Geometry</h3>
+     <div class="code-block">
+         <div class="code-header">
+             <strong>The Killer Relation</strong>
+         </div>
+         <pre>
++----------------------+
+| CACHE_AFFINITY       |
++----------------------+
+| process_id (FK)      |
+| core_id (FK)         |
+| heat_score           |
+| migration_penalty    |
+| last_execution_time  |
++----------------------+
+
+IF heat_score high → locked = true, prime enters M
+→ preserve this residue during repair if possible</pre>
+     </div>
+
+     <h3>Repair Propagation Topology</h3>
+
+     <div class="callout callout-info">
+         <strong>Overlap edges define the repair wave.</strong>
+         locality neighborhoods → propagation radius → repair wave traversal.
+         Scheduling becomes <em>local navigation through overlap geometry</em>.
+     </div>
+
+     <div class="code-block">
+         <div class="code-header">
+             <strong>OVERLAP_EDGE</strong>
+         </div>
+         <pre>+----------------------+
+| OVERLAP_EDGE         |
++----------------------+
+| edge_id (PK)         |
+| variable_a           |
+| variable_b           |
+| shared_group_id      |
+| overlap_strength     |
++----------------------+</pre>
+     </div>
+
+     <h3>Periodic Task Phase Geometry</h3>
+
+     <div class="code-block">
+         <div class="code-header">
+             <strong>PERIODIC_TASK — Where RMS Meets CRT</strong>
+         </div>
+         <pre>+----------------------+
+| PERIODIC_TASK        |
++----------------------+
+| process_id (FK)      |
+| period_prime         |
+| phase_residue        |
+| hyperperiod_slot     |
+| jitter_bound         |
++----------------------+
+
+RMS periods are coprime → CRT modulus = hyperperiod
+Each process phase = its residue in the manifold
+The hyperperiod IS the manifold period</pre>
+     </div>
+
+     <div class="callout callout-warn">
+         <strong>Reading note:</strong> The CRT search looks good on planted-feasible timetabling instances,
+         and remains interesting as a repair primitive. On the inventory benchmark, CP-SAT becomes the
+         stronger general-purpose optimizer once size and objective quality matter.
+     </div>
+
+     <div class="callout callout-success">
+         <strong>Thesis:</strong> Preemption is a CRT jump, not a restart. A traditional scheduler says
+         <code>event → recompute</code>. The CRT topology scheduler says
+         <code>event → local invariant-preserving displacement</code>. That is the entire philosophical shift —
+         this is fundamentally a <em>transactional local repair database for scheduling geometry</em>.
+     </div>
+ </section>
 
 <!-- ===== 6. VERDICT ===== -->
 <section class="blog-section" id="verdict">

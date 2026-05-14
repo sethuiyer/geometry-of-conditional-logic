@@ -166,6 +166,157 @@ It is already a pure commitment-preserving repair problem: tasks are assigned ti
 cores, priorities, and affinities — and when something changes, you want the *smallest exact
 repair*, not a full reschedule.
 
+### Core ER Diagram
+
+```text
++-------------------+
+|     PROCESS       |
++-------------------+
+| process_id (PK)   |
+| priority          |
+| period            |
+| deadline          |
+| exec_time         |
+| state             |
+| cache_heat        |
+| numa_preference   |
+| current_phase     |
++-------------------+
+          |
+          | participates_in
+          |
+          v
+
++-------------------+
+| VARIABLE_MAPPING  |
++-------------------+
+| mapping_id (PK)   |
+| process_id (FK)   |
+| group_id (FK)     |
+| position          |
+| residue_value     |
+| locked            |
++-------------------+
+          |
+          |
+          v
+
++-------------------+
+| CONSTRAINT_GROUP  |
++-------------------+
+| group_id (PK)     |
+| group_type        |
+| prime_modulus     |
+| validator_type    |
+| locality_scope    |
+| repair_cost_weight|
++-------------------+
+```
+
+### Constraint Group Types
+
+These become the overlap topology.
+
+```text
+CORE_GROUP       — one CPU core                — invariant: one active process per slot
+CACHE_GROUP      — shared L2/L3 region         — preserve warm-cache locality
+NUMA_GROUP       — memory locality domain       — minimize remote memory jumps
+DEADLINE_GROUP   — hard RT tasks                — deadline preservation
+DEPENDENCY_GROUP — task DAG constraints         — parent completion before child
+THERMAL_GROUP    — thermal balancing limits
+PRIORITY_GROUP   — RT priority bands
+```
+
+### CRT Repair State
+
+```text
++----------------------+
+| CRT_REPAIR_STATE     |
++----------------------+
+| state_id (PK)        |
+| global_z             |
+| repair_radius        |
+| preserved_count      |
+| timestamp            |
+| hyperperiod_phase    |
++----------------------+
+```
+
+This is the actual geometric scheduling coordinate, repair witness, and invariant state snapshot.
+
+### Local Transition Log
+
+```text
++----------------------+
+| TRANSITION_LOG       |
++----------------------+
+| transition_id (PK)   |
+| process_id (FK)      |
+| old_group            |
+| new_group            |
+| old_residue          |
+| new_residue          |
+| delta_z              |
+| repair_cost          |
+| preserved_invariants |
+| rollback_checkpoint  |
+| timestamp            |
++----------------------+
+```
+
+This is where "preemption is a CRT jump" becomes literal database structure.
+
+### Cache Affinity Geometry
+
+```text
++----------------------+
+| CACHE_AFFINITY       |
++----------------------+
+| process_id (FK)      |
+| core_id (FK)         |
+| heat_score           |
+| migration_penalty    |
+| last_execution_time  |
++----------------------+
+```
+
+If heat_score is high → locked = true, prime enters M.
+Meaning: preserve this residue during repair if possible.
+That's the geometric ELSE branch in systems form.
+
+### Repair Propagation Topology
+
+```text
++----------------------+
+| OVERLAP_EDGE         |
++----------------------+
+| edge_id (PK)         |
+| variable_a           |
+| variable_b           |
+| shared_group_id      |
+| overlap_strength     |
++----------------------+
+```
+
+This defines locality neighborhoods, propagation radius, and repair wave traversal.
+Now scheduling becomes: *local navigation through overlap geometry*.
+
+### Real-Time Period Geometry
+
+```text
++----------------------+
+| PERIODIC_TASK        |
++----------------------+
+| process_id (FK)      |
+| period_prime         |
+| phase_residue        |
+| hyperperiod_slot     |
+| jitter_bound         |
++----------------------+
+```
+
+This is where RMS/EDF, CRT phase structure, and coprime hyperperiods merge beautifully.
+
 ### The Overlap Topology
 
 | Group | Constraint |
@@ -259,6 +410,41 @@ The geometry is tight enough to matter there.
 small perturbations. For a dynamic scheduler handling real-time arrivals on 4–16 cores,
 the CRT repair model isn't a metaphor — it's the natural computational primitive.
 
+### Full Conceptual Flow
+
+```text
+PROCESS blocks
+        ↓
+affected groups identified
+        ↓
+locked warm-cache residues preserved
+        ↓
+CRT jump computes local repair
+        ↓
+repair radius minimized
+        ↓
+transition logged
+        ↓
+schedule repaired without global recomputation
+```
+
+### Deepest Interpretation
+
+Traditional scheduler:
+
+```text
+event → recompute
+```
+
+CRT topology scheduler:
+
+```text
+event → local invariant-preserving displacement
+```
+
+That's the entire philosophical shift. The ER model reveals something important:
+this is fundamentally a **transactional local repair database for scheduling geometry**.
+
 ---
 
 ## The Meta-Patterns
@@ -301,7 +487,8 @@ src/
 ├── prime_word_ladder.py        # Word Ladder II — multiple equal-energy valleys
 ├── prime_alien_dict.py         # Topological ordering with cycle detection
 ├── prime_regex_manifold.py     # NFA as multi-sheet manifold navigation
-└── crt_sudoku_hierarchical.py  # Multi-dimensional Sudoku via distributed CRT jumps (supersedes prime_sudoku.py)
+├── crt_sudoku_hierarchical.py  # Multi-dimensional Sudoku via distributed CRT jumps (supersedes prime_sudoku.py)
+├── cpu_scheduling.py          # 4-core CPU scheduler with CRT lock-and-repair, ER-style architecture
 
 docs/
 ├── MATH.md                    # Mathematical formulation and PyTorch implementation
