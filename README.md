@@ -6,6 +6,8 @@
 
 This project explores what happens when you force neural networks to navigate discrete Boolean logic through continuous prime-number Riemann surfaces — and what the terrain itself teaches you about constraint satisfaction, UNSAT geometry, and why some problems are literally impossible to collapse.
 
+---
+
 ## Math Audit
 
 Current code-first math rating: **61/100**.
@@ -16,6 +18,8 @@ Current code-first math rating: **61/100**.
 - Several extensions over-claim relative to the implementation.
 
 See the root-level [MATH.md](MATH.md) for the full audit, including exact derivations and implementation gaps.
+
+---
 
 ## Research Summary
 
@@ -98,11 +102,34 @@ Where $v_i$ are calculated using modular multiplicative inverses. This is **full
 
 ---
 
+## The Three-Layer Architecture
+
+The project is built on a clean separation of concerns:
+
+| Layer | Component | Role |
+|-------|-----------|------|
+| **Topology** | `ConstraintTopology` | Declarative hypergraph: groups + variables + overlap positions |
+| **Arithmetic** | `LocalCRTGroup` | CRT residues + exact transition + O(1) rollback |
+| **Search** | `RepairEngine` | Generic backtracking + lock-and-repair around locked commitments |
+
+**Key insight:** `z` (the CRT coordinate) is **not** the operational state. It is an **invariant certificate** — a lazy reconstruction that proves algebraic consistency. The solver mutates residues and locks; `z` is only recomputed when needed.
+
+### The Exact Mechanism: Incremental CRT Jump
+
+```
+z' = z + kM,    where M = ∏(p ∈ S) p
+k ≡ (c - z) · M⁻¹  (mod p_t)
+```
+
+This sets variable `t` to value `c` while **exactly preserving** all locked residues in `S`. No approximation, no tearing down prior commitments.
+
+---
+
 ## The Experiments
 
 | Experiment | What We Tried | What Happened | What We Learned |
 |------------|---------------|---------------|-----------------|
-| Basic Prime Logic NN | Train NN to learn symbolic constraints using cosine prime-wave loss | Converged to $z \approx 21$, decoded exact logic `[1,0,1]` | Discrete Boolean states can be embedded into a smooth differentiable landscape |
+| Basic Prime Logic NN | Train NN to learn symbolic constraints using cosine prime-wave loss | Converged to z ≈ 21, decoded exact logic [1,0,1] | Discrete Boolean states can be embedded into a smooth differentiable landscape |
 | Hard Prime Maze (5D/7D) | Scale to many simultaneous prime constraints | Network got trapped in local minima; partial constraint satisfaction only | Superposed prime manifolds create real frustration geometry and interference traps |
 | Garner Navigation | Use Garner's Algorithm as constructive guidance | Training stopped wandering and moved toward exact targets | Constructive arithmetic acts like a "global coordinate system" for navigation |
 | Gradient Explosion Test | Push NN toward huge CRT coordinates | Gradients exploded to absurd magnitudes | Large symbolic coordinate spaces require stabilization/scaling |
@@ -110,26 +137,14 @@ Where $v_i$ are calculated using modular multiplicative inverses. This is **full
 | Dual-Loss Architecture | Combine MSE-to-Garner with wave snapping | Massive convergence improvement | "Highway + snap" worked better than wave loss alone |
 | N-Queens | Encode queen positions with primes and CRT decoding | Solved full 8-Queens with exact coordinate extraction | Constraint satisfaction can be navigated geometrically with structured jumps |
 | Timetable Scheduling | Assign classes to rooms/times under conflicts | Produced valid non-overlapping schedule | Resource allocation naturally fits manifold-style constraint encoding |
-| Hypergraph Timetabling | Solve an NP-hard course-placement problem with room/instructor/student conflicts | Exact valid timetable found via CRT-preserving jumps and backtracking | The framework is strongest on small-alphabet NP-hard assignment problems where solved decisions must be preserved exactly |
-| Inventory Allocation | Allocate e-commerce orders to fulfillment plans under stock and lane constraints | Valid low-cost plan found, then repaired under disruption while preserving locked promises | Non-scheduling order promising is a strong commercial fit for exact lock-and-repair |
+| Hypergraph Timetabling | Solve NP-hard course-placement with room/instructor/student conflicts | Exact valid timetable found via CRT-preserving jumps and backtracking | Framework strongest on small-alphabet NP-hard problems with preserved decisions |
+| Inventory Allocation | Allocate e-commerce orders under stock and lane constraints | Valid low-cost plan found, repaired under disruption while preserving locked promises | Non-scheduling order promising is a strong commercial fit for lock-and-repair |
 | Mastermind Solver | Use residues to represent code states and deductions | 100/100 games solved, ~4.47 average turns | Constraint elimination behaves like manifold collapse |
 | SAT Landscape | Turn SAT clauses into penalty-wave geometry | Produced visible valleys/mountains and satisfying basins | SAT problems can literally be visualized as frustration terrains |
-| SAT Assignment Extraction | Decode truth assignments from coordinates | Successfully recovered Boolean assignments | CRT decoding is interpretable and reversible |
-| SAT Verification | Compare manifold valleys against actual SAT truth | Found "stable" solutions vs weaker/ghost solutions | Geometry encodes stability, not just satisfiability |
 | Pigeonhole Principle | Try impossible 3 pigeons / 2 holes CSP | No zero-energy solution existed | UNSAT appears as irreducible geometric frustration |
 | Binary Gravity Constraint | Force strict Boolean-only states | Energy floor stayed nonzero | Impossible systems cannot collapse into admissible valleys |
-| "Void Residue" Behavior | Allow non-binary residues during UNSAT search | System invented higher-sheet escape states | Emergent "ghost dimensions" appear when constraints are impossible |
 
-## Extended Problem Analysis
-
-The framework's fit varies by problem type:
-
-| Problem | Fit Quality | Why |
-|---------|-------------|-----|
-| Word Ladder II | ★★★★☆ | Multiple shortest paths naturally map to equal-energy valleys |
-| Alien Dictionary | ★★★★★ | Topological ordering + cycle detection = frustration geometry |
-| Regex Matching | ★★★★★ | NFAs ARE topology — branches are sheets, stars are epsilon transitions |
-| Sudoku | ★★☆☆☆ | 81 interdependent constraints explode the period; requires monodromy extensions |
+---
 
 ## The Moiré Trap
 
@@ -157,18 +172,6 @@ Across all experiments, the same phenomena kept appearing:
 | Ghost residues | Relaxed manifolds invent escape dimensions |
 | UNSAT → nonzero floor | Contradictions become geometric frustration |
 | Exact decoding | State space remained interpretable |
-
----
-
-## The Moiré Trap
-
-When superimposing waves of different prime frequencies, you get **moiré interference patterns** — chaotic terrain with false valleys everywhere. Standard optimization gets trapped at coordinates where exactly 2 out of 3 prime constraints are satisfied. The system builds an unscalable wall around itself.
-
-**The theorem:** Garner's discrete algorithm for CRT is **fundamentally identical** to continuous monodromy transport through a multidimensional manifold. Any jump by $M$ (product of satisfied primes) preserves all satisfied constraints:
-
-```
-z_new = z_old + n * M  (safe corridor for all n ∈ ℤ)
-```
 
 ---
 
@@ -200,7 +203,7 @@ src/
 docs/
 ├── MATH.md                    # Mathematical formulation and PyTorch implementation
 ├── MATH2.md                   # Deep dive: Lambert W failure, Riemann surfaces, CRT
-├── podcast.md                 # Development narrative
+├── podcast.md                 # Development narrative (full podcast transcript)
 └── codingsession.md          # Additional conversation logs
 
 index.html                    # Visual showcase with KaTeX math rendering
@@ -214,7 +217,7 @@ CRITIC.md                    # Response to Hacker News critique
 ## Key Results
 
 - **Traffic Controller:** 7/7 safety scenarios passed, zero violations — unsafe states are geometrically unreachable
-- **8-Queens:** Solved with coordinate $z = 2,372,774,783$, extracting exact queen positions
+- **8-Queens:** Solved with coordinate z = 2,372,774,783, extracting exact queen positions
 - **Mastermind:** 100/100 games solved, average 4.47 turns (near theoretical efficiency)
 - **SAT Landscape:** Visualized as physical energy terrain — valleys = satisfying assignments, mountains = frustration
 - **Pigeonhole (UNSAT):** Energy floor stayed nonzero — impossible constraints manifest as irreducible geometric frustration
@@ -228,8 +231,6 @@ CRITIC.md                    # Response to Hacker News critique
 
 - **Not a universal optimizer.** Standard neural networks don't naturally organize weights into prime Riemann surfaces. The teleportation only works if you explicitly encode constraints as prime manifolds.
 - **Not a P=NP claim.** Garner's Algorithm navigates the trap because the prime structure is known in advance. For arbitrary NP-hard problems, the algebraic map is unknown.
-
----
 
 ## What IS Proven
 
