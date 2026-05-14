@@ -29,6 +29,7 @@ The project started by asking whether conditional logic had inherent continuous 
 | `ultrametric_retrieval.py` | Ultra depth=3.00 vs BM25 depth=1.28 on synthetic corpus |
 | `ultrametric_gutenberg.py` | Ultra depth=3.73 vs BM25 depth=1.38 on 750 real docs (+2.35 layers) |
 | `padic_sudoku.py` | Backtracking solver with per-move p-adic valuation tracking |
+| `crt_sudoku_hierarchical.py` | Solved AI Escargot (world's hardest Sudoku) in 6.98s — 27 independent CRT microspaces, pure backtracking, no advanced heuristics |
 | `padic_problem.py` | Patch-vs-violate DP with ultrametric cost (verified against brute force) |
 | Traffic controller | 7/7 safety scenarios, zero violations |
 | 8-Queens | Solved with coordinate z = 2,372,774,783 |
