@@ -1,49 +1,101 @@
-# Geometric IF-ELSE: A Local Repair Calculus for Structured Discrete State Systems Using Ultrametric Spaces
+# Lock-Preserving Incremental Solver
 
-> **Geometric IF-ELSE is branching computation interpreted as ultrametric local repair over overlapping discrete consistency domains. The ELSE branch is not a control-flow fork — it is the shortest valid path through hierarchical consistency space preserving the deepest possible commitment structure.**
+> **A transactional repair runtime for discrete constraint systems. Perturbation arrives → system computes minimal repair, not full recomputation. Commitments that don't need to change don't change. Repair radius = business disruption.**
 
-**A [Shunyabar Labs](https://shunyabar.foo) project.**
+A [Shunyabar Labs](https://shunyabar.foo) project.
 
-The framework combines three ideas. **CRT** gives the exact invariant-preserving jump (`z' = z + kM`). **p-adic ultrametric geometry** gives the locality metric — two states are close if they preserve many nested commitments. **Matching / flow** gives the minimal repair path. Distributed actors give the execution model.
+## The Core Thesis
 
-The project started by asking whether conditional logic had inherent continuous geometry, and ended with a verified ultrametric retrieval system that beats BM25 by +2.35 depth layers on real literature — every link in the chain experimentally confirmed.
+The codebase proves something operational, not just mathematical:
 
-### The Mature Definition
+```
+k=10 perturb  repair=0.0031s  speedup=847x  radius=4  preserved=95%
+```
 
-| Component | Role |
+That's an **operational cost metric**. Companies understand disruption cost — equipment failure, gate change, worker callout, supply chain break. The question is always: "What's the cheapest fix that preserves existing commitments?"
+
+Standard approach: **recompute from scratch** (cost proportional to problem size). This framework: **compute minimal repair** (cost proportional to perturbation size). The CRT primitive is just the implementation detail — the real contribution is a runtime that treats constraint satisfaction as a **transactional repair log** with exactly one invariant: locked commitments never change.
+
+### The Architecture
+
+| Layer | Role | Analogy |
+|---|---|---|
+| Constraint topology | Declares which commitments exist | Schema / ontology |
+| CRT microspaces | Each group is an independent state machine | ACID transaction |
+| Shield M = ∏ locked primes | Algebraic guarantee that locked stays locked | Write-ahead log |
+| Synchronized jumps | Atomic multi-group state transition | Distributed commit |
+| Rollback | Restore prior state on conflict | Undo / compensating action |
+
+### What This Is Not
+
+- Not an AI framework
+- Not a geometry project
+- Not a replacement for neural networks
+- Not a P=NP claim
+
+### What This Is
+
+A **lock-preserving incremental solver** for structured discrete systems where:
+
+- Commitments are explicit and nested
+- Perturbations are smaller than the full problem
+- Preserving prior decisions has business value
+- Repair cost should scale with disruption size, not problem size
+
+## Experimental Proof
+
+### Repair Benchmark (AI Escargot, world's hardest Sudoku)
+
+| Perturbation | Repair time | Speedup vs full solve | Repair radius | Preserved |
+|---|---|---|---|---|
+| k=1 | 0.0007s | 10,441x | 0 | 100% |
+| k=2 | 0.0006s | 12,495x | 0 | 100% |
+| k=3 | 0.0007s | 10,542x | 0 | 100% |
+| k=5 | 0.0021s | 3,415x | 0 | 100% |
+| k=10 | 0.0038s | 1,861x | 0 | 100% |
+| **k=10 (distinct)** | **0.0031s** | **847x** | **4** | **95%** |
+
+Full solve from scratch: **7.0s**. Repair after 10-cell perturbation: **0.003s**. That's the thesis.
+
+### Elixir/OTP Mapping
+
+The framework converges naturally onto BEAM:
+
+| CRT concept | OTP primitive |
 |---|---|
-| Matching / augmenting paths | compute minimal repair chain |
-| CRT | exact invariant-preserving displacement |
-| p-adics / ultrametric | locality metric |
-| Topology | legal overlap structure |
-| Actors | distributed execution |
+| Constraint group | GenServer actor |
+| Shield M | Supervision tree boundary |
+| Locked residue | Process state (immutable) |
+| CRT jump | Message send |
+| Synchronized jump (row+col+box) | Distributed transaction / saga |
+| Rollback | Actor restart / crash recovery |
+| Repair cascade | Supervision tree restart strategy |
+| Transition log | ETS / Mnesia event log |
 
-**Claim:** Ultrametric distance measures preserved symbolic structure under substitution, whereas cosine similarity measures smooth semantic proximity. These are different geometries. Systems that need both benefit from combining them explicitly.
+The supervision tree **is** the constraint topology. Actor restart **is** the undo operation. The BEAM was built for this.
 
-### Experimental Summary
+### What the Codebase Actually Contains
 
-| Experiment | Result |
+| File | What it proves |
 |---|---|
+| `benchmark_repair.py` | Core thesis: repair is 800-12,000x faster than restart |
+| `crt_sudoku_hierarchical.py` | 27 independent microspaces, atomic triple jumps, solved AI Escargot in 6.98s |
+| `crt_futoshiki.py` | Inequality constraints as external validators on CRT core |
+| `crt_latin_square.py` | N×N permutation constraints via double synchronized jumps |
+| `crt_sokoban.py` | Spatial state encoding via CRT (stress test for planning) |
 | `padic_check.py` | Ultrametric inequality: 0 violations in 2000 triples |
-| `nn_ultrametric.py` | Cosine cannot separate shallow from deep semantic substitutions |
-| `ultrametric_retrieval.py` | Ultra depth=3.00 vs BM25 depth=1.28 on synthetic corpus |
-| `ultrametric_gutenberg.py` | Ultra depth=3.73 vs BM25 depth=1.38 on 750 real docs (+2.35 layers) |
-| `padic_sudoku.py` | Backtracking solver with per-move p-adic valuation tracking |
-| `crt_sudoku_hierarchical.py` | Solved AI Escargot (world's hardest Sudoku) in 6.98s — 27 independent CRT microspaces, pure backtracking, no advanced heuristics |
-| `padic_problem.py` | Patch-vs-violate DP with ultrametric cost (verified against brute force) |
-| Traffic controller | 7/7 safety scenarios, zero violations |
-| 8-Queens | Solved with coordinate z = 2,372,774,783 |
-| Mastermind | 100/100 games, 4.47 average turns |
+| `ultrametric_gutenberg.py` | Structure-sensitive retrieval beats BM25 by +2.35 depth layers |
 
 ### Papers / Docs
 
 - `PADIC.md` — formal p-adic repair calculus
 - `NEURAL.md` — neural + ultrametric bridge
-- `AI.md` — ultrametric retrieval architecture and neuro-symbolic vision
+- `AI.md` — ultrametric retrieval architecture
 - `MEMORY.md` — ultrametric memory for LLM agents
-- `STRUCTURAL_RETRIEVAL.md` — cross-domain failure pattern (code, proofs, planning)
-- `MATH.md` — math audit (61/100), code-first derivations
+- `STRUCTURAL_RETRIEVAL.md` — cross-domain failure pattern
+- `MATH.md` — math audit (61/100)
 - `CRITIC.md` — response to Hacker News critique
+- `ultramem.md` — UltraMeM mathematical foundations
 
 ### Module
 
