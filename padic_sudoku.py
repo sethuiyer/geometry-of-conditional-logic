@@ -274,38 +274,50 @@ class PAdicSudokuSolver:
         self.move_log = []
         self.states = []
 
-        # Initial z from clues board (unassigned cells = 0 residue)
-        start_z = z_from_board(self.clues_board)
+        # Initial board state (clues only, rest is 0)
+        board = [row[:] for row in self.clues_board]
+        start_z = z_from_board(board)
         self.states.append(start_z)
 
-        solved_z = self._backtrack(start_z, 0, max_backtracks)
-        if solved_z is None:
+        # set_mask: which cells have been intentionally placed (clues + solver)
+        set_mask = [row[:] for row in self.clues_board]  # 0 = unset, nonzero = set
+
+        solved_board = self._backtrack(board, set_mask, start_z, 0, max_backtracks)
+        if solved_board is None:
             return None
 
-        board = board_from_z(solved_z)
         stats = self._compute_stats()
-        return board, stats
+        return solved_board, stats
 
-    def _backtrack(self, z, depth, max_backtracks):
+    def _backtrack(self, board, set_mask, z, depth, max_backtracks):
         if depth > max_backtracks:
             return None
         if depth >= 81:
-            return z
+            # Verify the solution is valid
+            if is_valid(board):
+                return board
+            return None
 
-        board = board_from_z(z)
         ci = self.commit_order[depth]
         r, c = divmod(ci, 9)
 
-        # If this cell is a clue or already set, skip
-        if self.clues_mask[ci] or board[r][c] != 0:
-            return self._backtrack(z, depth + 1, max_backtracks)
+        # If this cell is a clue or already set by solver, skip
+        if set_mask[r][c] != 0:
+            return self._backtrack(board, set_mask, z, depth + 1, max_backtracks)
 
         legal = sorted(legal_values(board, r, c))
         if not legal:
             return None  # dead end
 
+        # Build locked indices: all cells with set_mask != 0, except current cell
+        locked = []
+        for rr in range(9):
+            for cc in range(9):
+                idx = rr * 9 + cc
+                if idx != ci and set_mask[rr][cc] != 0:
+                    locked.append(idx)
+
         # Candidates with their p-adic valuations
-        locked = self._locked_indices(depth, ci)
         candidates = []
         for val in legal:
             z_next = crt_jump(z, ci, val, locked, CELL_PRIMES)
@@ -316,7 +328,9 @@ class PAdicSudokuSolver:
         candidates.sort(key=lambda x: -x[0])
 
         for v, val, z_next in candidates:
-            new_board = board_from_z(z_next)
+            # Apply move to board and set_mask
+            board[r][c] = val
+            set_mask[r][c] = val
             self.move_log.append({
                 "cell": ci,
                 "pos": (r, c),
@@ -327,18 +341,18 @@ class PAdicSudokuSolver:
                 "d_R": 2 ** (-v),
             })
             self.states.append(z_next)
-            result = self._backtrack(z_next, depth + 1, max_backtracks)
+            result = self._backtrack(board, set_mask, z_next, depth + 1, max_backtracks)
             if result is not None:
                 return result
+            # Backtrack
+            board[r][c] = 0
+            set_mask[r][c] = 0
             self.states.pop()
 
         return None
 
     def _locked_indices(self, depth, changing_idx):
-        """
-        Lock all cells at commitment positions < depth (already committed),
-        plus all clues.  Only the current target cell may change.
-        """
+        """Used for trace extraction from move logs."""
         locked = set(i for i in range(81) if self.clues_mask[i])
         for d in range(depth):
             idx = self.commit_order[d]
