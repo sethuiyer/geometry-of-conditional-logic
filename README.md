@@ -88,14 +88,18 @@ The supervision tree **is** the constraint topology. Actor restart **is** the un
 
 ### Papers / Docs
 
-- `PADIC.md` — formal p-adic repair calculus
-- `NEURAL.md` — neural + ultrametric bridge
-- `AI.md` — ultrametric retrieval architecture
-- `MEMORY.md` — ultrametric memory for LLM agents
-- `STRUCTURAL_RETRIEVAL.md` — cross-domain failure pattern
-- `MATH.md` — math audit (61/100)
-- `CRITIC.md` — response to Hacker News critique
-- `ultramem.md` — UltraMeM mathematical foundations
+- `docs/PADIC.md` — formal p-adic repair calculus
+- `docs/NEURAL.md` — neural + ultrametric bridge
+- `docs/AI.md` — ultrametric retrieval architecture
+- `docs/MEMORY.md` — ultrametric memory for LLM agents
+- `docs/STRUCTURAL_RETRIEVAL.md` — cross-domain failure pattern
+- `docs/MATH.md` — math audit (61/100)
+- `docs/CRITIC.md` — response to Hacker News critique
+- `docs/MONEY.md` — commercial positioning
+- `docs/CIRCLE.md` — geometric interpretation
+- `docs/USECASE.md` — use case exploration
+- `docs/paper.md` — academic paper draft
+- `src/research/ultramem.md` — UltraMeM mathematical foundations
 
 ### Module
 
@@ -112,7 +116,7 @@ Current code-first math rating: **61/100**.
 - The cosine wave loss is a real smooth surrogate, but not an exact logical encoding.
 - Several extensions over-claim relative to the implementation.
 
-See the root-level [MATH.md](MATH.md) for the full audit, including exact derivations and implementation gaps.
+See [docs/MATH.md](docs/MATH.md) for the full audit, including exact derivations and implementation gaps.
 
 ---
 
@@ -134,8 +138,8 @@ We ran direct benchmarks against **OR-Tools CP-SAT** on the same synthetic timet
 
 See:
 
-- [MATH.md](MATH.md) for the mathematical audit
-- [MONEY.md](MONEY.md) for commercial positioning
+- [docs/MATH.md](docs/MATH.md) for the mathematical audit
+- [docs/MONEY.md](docs/MONEY.md) for commercial positioning
 - `src/large_scale_benchmark.py` for internal scaling tests
 - `src/benchmark_vs_cpsat.py` for the direct CP-SAT comparison
 
@@ -602,21 +606,16 @@ src/
 docs/
 ├── MATH.md                        # Mathematical formulation and PyTorch implementation
 ├── MATH2.md                       # Deep dive: Lambert W failure, Riemann surfaces, CRT
-├── podcast.md                     # Development narrative (full podcast transcript)
-└── codingsession.md              # Additional conversation logs
-
-Root:
 ├── PADIC.md                       # p-adic repair calculus
 ├── NEURAL.md                      # Neural + ultrametric bridge
 ├── AI.md                          # Ultrametric retrieval architecture
 ├── MEMORY.md                      # Ultrametric memory for LLM agents
 ├── STRUCTURAL_RETRIEVAL.md        # Cross-domain retrieval failure patterns
-├── index.html                     # Visual showcase with KaTeX math rendering
 ├── CRITIC.md                      # Response to Hacker News critique
 ├── MONEY.md                       # Commercial positioning
-├── MATH.md                        # Math audit
 ├── CIRCLE.md                      # Geometric interpretation
-└── USECASE.md                     # Use case exploration
+├── USECASE.md                     # Use case exploration
+└── paper.md                       # Academic paper draft
 ```
 
 ---
