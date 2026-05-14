@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometric IF-ELSE — Topology-driven Exact Repair for Structured Discrete Systems</title>
+    <title>Geometric IF-ELSE — A Local Repair Calculus for Structured Discrete State Systems Using Ultrametric Spaces</title>
     <script async defer src="https://beampipe.io/js/tracker.js" data-beampipe-domain="sethuiyer.github.io"></script>
-    <meta name="description" content="A three-layer architecture for constraint repair: ConstraintTopology (hypergraph), LocalCRTGroup (CRT arithmetic kernel), RepairEngine (generic lock-and-repair). Code, benchmarks, and demos.">
+    <meta name="description" content="A local repair calculus for structured discrete state systems. Branching as ultrametric displacement — CRT invariant-preserving jumps, p-adic locality metrics, and distributed constraint repair. Code, benchmarks, and experimental verification.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap" rel="stylesheet">
@@ -49,7 +49,10 @@
 
         body {
             font-family: var(--font-sans);
-            background: var(--bg);
+            background:
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.10), transparent 28%),
+                radial-gradient(circle at top right, rgba(180, 83, 9, 0.08), transparent 24%),
+                linear-gradient(180deg, #f7f5ef 0%, #fafaf7 22%, #f6f3ec 100%);
             color: var(--text);
             line-height: 1.75;
             -webkit-font-smoothing: antialiased;
@@ -73,18 +76,25 @@
         .site-wrapper {
             display: flex;
             min-height: 100vh;
+            max-width: 1320px;
+            margin: 0 auto;
         }
 
         /* === SIDEBAR (TOC) === */
         .sidebar {
             position: sticky;
-            top: 0;
-            height: 100vh;
+            top: 24px;
+            height: calc(100vh - 48px);
             width: 280px;
             min-width: 280px;
             padding: 48px 28px 40px 36px;
-            background: var(--paper);
-            border-right: 1px solid var(--border);
+            margin: 24px 0 24px 24px;
+            background: rgba(255, 254, 248, 0.82);
+            border: 1px solid rgba(42, 51, 52, 0.08);
+            border-right: 1px solid rgba(42, 51, 52, 0.08);
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-lg);
             overflow-y: auto;
             font-size: 0.88rem;
         }
@@ -141,15 +151,33 @@
         /* === MAIN CONTENT === */
         .main-content {
             flex: 1;
-            max-width: var(--content-width);
-            padding: 0 48px 80px;
+            max-width: 820px;
+            padding: 24px 48px 80px;
         }
 
         /* === HERO === */
         .hero {
-            padding: 72px 0 56px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 48px;
+            padding: 44px;
+            margin: 0 0 48px;
+            border: 1px solid rgba(42, 51, 52, 0.08);
+            border-radius: 32px;
+            background:
+                linear-gradient(135deg, rgba(255, 254, 248, 0.95), rgba(255, 252, 243, 0.92)),
+                radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 34%);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: auto -8% -36% auto;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(15, 118, 110, 0.12), transparent 68%);
+            pointer-events: none;
         }
 
         .hero-eyebrow {
@@ -193,9 +221,62 @@
             margin-bottom: 24px;
         }
 
-        .hero-meta span { display: flex; align-items: center; gap: 5px; }
+        .hero-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(42, 51, 52, 0.08);
+        }
 
         .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .hero-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-size: 0.84rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .hero-action:hover {
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .hero-action-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 12px 26px rgba(15, 118, 110, 0.18);
+        }
+
+        .hero-action-primary:hover { color: white; background: var(--accent-hover); }
+
+        .hero-action-secondary {
+            background: rgba(255, 255, 255, 0.72);
+            border-color: rgba(42, 51, 52, 0.10);
+            color: var(--text);
+        }
+
+        .hero-action-secondary:hover {
+            color: var(--accent);
+            border-color: rgba(15, 118, 110, 0.22);
+        }
 
         .tag {
             display: inline-flex;
@@ -570,11 +651,12 @@
         }
 
         @media (max-width: 640px) {
-            .hero { padding: 48px 0 32px; }
+            .hero { padding: 28px 22px; border-radius: 24px; }
             .main-content { padding: 0 18px 40px; }
             h2 { font-size: 1.4rem; }
             .metrics-grid { grid-template-columns: 1fr 1fr; }
             .results-grid { grid-template-columns: 1fr; }
+            .hero-meta span { width: 100%; }
         }
     </style>
 </head>
@@ -588,62 +670,33 @@
     <div class="sidebar-subtitle">
         Architecture · Math · Benchmarks · Codebase
     </div>
-<ul class="toc-list">
-          <li><a href="#overview" class="active">Overview</a></li>
-          <li><a href="#problem">The Problem with If/Else</a></li>
-          <li><a href="#theory">The Theory
-              <ul class="toc-list">
-                  <li><a href="#crt-encoding" class="toc-indent">CRT Encoding</a></li>
-                  <li><a href="#cosine-loss" class="toc-indent">Cosine Wave Loss</a></li>
-                  <li><a href="#garner" class="toc-indent">Garner's Algorithm</a></li>
-              </ul>
-          </li>
-          <li><a href="#architecture">Three-Layer Architecture</a></li>
-          <li><a href="#mechanism">The Exact Mechanism</a></li>
-          <li><a href="#experiments">Experiments
-              <ul class="toc-list">
-                  <li><a href="#math-core" class="toc-indent">Math Core</a></li>
-                  <li><a href="#assignment" class="toc-indent">Constraint Assignment</a></li>
-                  <li><a href="#csp" class="toc-indent">CSP & Search</a></li>
-                  <li><a href="#sat" class="toc-indent">SAT Exploration</a></li>
-                  <li><a href="#advanced" class="toc-indent">Advanced / Multi-Domain</a></li>
-                  <li><a href="#cpu-scheduling" class="toc-indent">CPU Scheduling Case Study</a></li>
-                  <li><a href="#analogy" class="toc-indent">Analogy Extensions</a></li>
-              </ul>
-          </li>
-          <li><a href="#benchmarks">Benchmarks</a></li>
-          <li><a href="#verdict">Verdict</a></li>
-          <li><a href="#codebase">Codebase Map</a></li>
-          <li><a href="#links">Links</a></li>
-      </ul>
-         </li>
-         <li><a href="#architecture">Three-Layer Architecture</a></li>
-         <li><a href="#mechanism">The Exact Mechanism</a></li>
-         <li><a href="#experiments">Experiments</a>
-             <ul class="toc-list">
-                 <li><a href="#math-core" class="toc-indent">Math Core</a></li>
-                 <li><a href="#assignment" class="toc-indent">Constraint Assignment</a></li>
-                 <li><a href="#csp" class="toc-indent">CSP & Search</a></li>
-                 <li><a href="#sat" class="toc-indent">SAT Exploration</a></li>
-                 <li><a href="#advanced" class="toc-indent">Advanced / Multi-Domain</a></li>
-                 <li><a href="#cpu-scheduling" class="toc-indent">CPU Scheduling Case Study</a></li>
-                 <li><a href="#analogy" class="toc-indent">Analogy Extensions</a></li>
-             </ul>
-         </li>
-         <li><a href="#benchmarks">Benchmarks</a></li>
-         <li><a href="#verdict">Verdict</a></li>
-         <li><a href="#codebase">Codebase Map</a></li>
-         <li><a href="#links">Links</a></li>
-     </ul>
-                 <li><a href="#csp" class="toc-indent">CSP & Search</a></li>
-                 <li><a href="#sat" class="toc-indent">SAT Exploration</a></li>
-                 <li><a href="#advanced" class="toc-indent">Advanced / Multi-Domain</a></li>
-                 <li><a href="#cpu-scheduling" class="toc-indent">CPU Scheduling Case Study</a></li>
-                 <li><a href="#analogy" class="toc-indent">Analogy Extensions</a></li>
-             </ul>
+    <ul class="toc-list">
+        <li><a href="#overview" class="active">Overview</a></li>
+        <li><a href="#problem">The Problem with If/Else</a></li>
+        <li><a href="#theory">The Theory</a>
+            <ul class="toc-list">
+                <li><a href="#crt-encoding" class="toc-indent">CRT Encoding</a></li>
+                <li><a href="#cosine-loss" class="toc-indent">Cosine Wave Loss</a></li>
+                <li><a href="#garner" class="toc-indent">Garner's Algorithm</a></li>
+            </ul>
+        </li>
+        <li><a href="#architecture">Three-Layer Architecture</a></li>
+        <li><a href="#mechanism">The Exact Mechanism</a></li>
+        <li><a href="#experiments">Experiments</a>
+            <ul class="toc-list">
+                <li><a href="#math-core" class="toc-indent">Math Core</a></li>
+                <li><a href="#assignment" class="toc-indent">Constraint Assignment</a></li>
+                <li><a href="#csp" class="toc-indent">CSP & Search</a></li>
+                <li><a href="#sat" class="toc-indent">SAT Exploration</a></li>
+                <li><a href="#advanced" class="toc-indent">Advanced / Multi-Domain</a></li>
+                <li><a href="#distributed" class="toc-indent">Distributed Propagation</a></li>
+                <li><a href="#cpu-scheduling" class="toc-indent">CPU Scheduling</a></li>
+                <li><a href="#analogy" class="toc-indent">Analogy Extensions</a></li>
+            </ul>
         </li>
         <li><a href="#benchmarks">Benchmarks</a></li>
         <li><a href="#verdict">Verdict</a></li>
+        <li><a href="#geometric-ifelse">Geometric IF-ELSE</a></li>
         <li><a href="#codebase">Codebase Map</a></li>
         <li><a href="#links">Links</a></li>
     </ul>
@@ -653,7 +706,8 @@
         <a href="README.md">README</a> ·
         <a href="MATH.md">Math Audit</a> ·
         <a href="MONEY.md">Commercial Notes</a> ·
-        <a href="CRITIC.md">Critique Response</a>
+        <a href="CRITIC.md">Critique Response</a> ·
+        <a href="PADIC.md">p-adic Geometry</a>
     </div>
 </aside>
 
@@ -661,25 +715,31 @@
 <main class="main-content">
 
 <!-- ===== HERO ===== -->
-<section class="hero">
-    <div class="hero-eyebrow">Research Codebase · 2024–2025</div>
-    <h1>Topology-driven exact repair for structured discrete systems</h1>
+<section class="hero" id="overview">
+    <div class="hero-eyebrow">Local Repair Calculus · Ultrametric Spaces · 2024–2025</div>
+    <h1>A local repair calculus for structured discrete state systems using ultrametric spaces</h1>
     <p class="hero-subtitle">
-        A three-layer architecture for constraint problems where you commit some variables
-        and repair the rest without recomputing from scratch — using Chinese Remainder Theorem
-        residues as an exact state-update primitive.
+        Branching interpreted as bounded ultrametric displacement. CRT gives the exact
+        invariant-preserving jump. p-adic geometry gives the locality metric. Distributed
+        actors give the execution model. The ELSE branch is no longer a fork — it is the
+        shortest valid path through hierarchical consistency space.
     </p>
     <div class="hero-meta">
-        <span>📐 Math Rating: <strong>61 / 100</strong></span>
-        <span>🔬 Verdict: <strong>Good direction, weak breakthrough claim</strong></span>
-        <span>🕐 ~12 min read</span>
+        <span>📐 Ultrametric Verified: <strong>✓ 0 violations / 2000 triples</strong></span>
+        <span>🔬 Framework: <strong>CRT + p-adic + bipartite matching + actors</strong></span>
+        <span>🕐 ~15 min read</span>
     </div>
     <div class="hero-tags">
-        <span class="tag tag-core">CRT Arithmetic</span>
-        <span class="tag tag-core">Exact Repair</span>
-        <span class="tag tag-accent">Lock-and-Restore</span>
-        <span class="tag tag-caution">Specialized Primitive</span>
-        <span class="tag tag-danger">Not a Universal Solver</span>
+        <span class="tag tag-core">Ultrametric Geometry</span>
+        <span class="tag tag-core">CRT Displacement</span>
+        <span class="tag tag-core">p-adic Locality</span>
+        <span class="tag tag-accent">Bipartite Matching</span>
+        <span class="tag tag-accent">Distributed Actors</span>
+        <span class="tag tag-caution">Specialized to Nested Commitments</span>
+    </div>
+    <div class="hero-actions">
+        <a class="hero-action hero-action-primary" href="#geometric-ifelse">Read the definition</a>
+        <a class="hero-action hero-action-secondary" href="#verdict">Jump to bottom line</a>
     </div>
 </section>
 
@@ -1208,7 +1268,138 @@ The hyperperiod IS the manifold period</pre>
      </div>
  </section>
 
-<!-- ===== 6. VERDICT ===== -->
+<!-- ===== 6.5. DISTRIBUTED CONSTRAINT PROPAGATION ===== -->
+<section class="blog-section" id="distributed">
+     <div class="section-kicker">Architecture</div>
+     <h2>Distributed Constraint Propagation Network</h2>
+     <p>
+         The mature form of this architecture is no longer "one magical arithmetic object."
+         It's <strong>many local consistency actors coordinating exact repairs</strong>.
+     </p>
+
+     <h3>From Monolith to Network</h3>
+     <p>
+         The Python demos proved the math. The Erlang modules proved the actor model.
+         The Elixir implementation unifies them into a <strong>distributed constraint propagation network</strong>:
+     </p>
+
+     <div class="metrics-grid">
+         <div class="metric">
+             <div class="metric-label">ConstraintTopology</div>
+             <div style="font-family:var(--font-mono);font-size:0.85rem;color:var(--accent);margin-top:4px;">
+                 <code>constraint_topology.ex</code>
+             </div>
+             <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px;">Declarative overlap graph. Groups + cells + edges. Problem-agnostic map.</div>
+         </div>
+         <div class="metric">
+             <div class="metric-label">ConstraintGroup</div>
+             <div style="font-family:var(--font-mono);font-size:0.85rem;color:var(--accent);margin-top:4px;">
+                 <code>constraint_group.ex</code>
+             </div>
+             <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px;">GenServer actor. Owns local residues, lock enforcement, immutable history. One per domain.</div>
+         </div>
+         <div class="metric">
+             <div class="metric-label">RepairTransaction</div>
+             <div style="font-family:var(--font-mono);font-size:0.85rem;color:var(--accent);margin-top:4px;">
+                 <code>repair_transaction.ex</code>
+             </div>
+             <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px;">Atomic multi-group staged repair. Snapshot → stage → verify → commit or rollback.</div>
+         </div>
+         <div class="metric">
+             <div class="metric-label">RepairCoordinator</div>
+             <div style="font-family:var(--font-mono);font-size:0.85rem;color:var(--accent);margin-top:4px;">
+                 <code>repair_coordinator.ex</code>
+             </div>
+             <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px;">Owns global z. Dispatches CRT jumps. Computes cache-affinity shields. Maintains event log.</div>
+         </div>
+     </div>
+
+     <h3>The Architectural Alignment</h3>
+     <p>
+         Erlang/Elixir were literally built for this:
+     </p>
+
+     <div class="table-wrap">
+         <table>
+             <thead>
+                 <tr><th>CRT Concept</th><th>Elixir/Erlang Concept</th><th>Why It Fits</th></tr>
+             </thead>
+             <tbody>
+                 <tr><td>ConstraintGroup</td><td>GenServer actor</td><td>Isolated local state, fault containment</td></tr>
+                 <tr><td>Local repair</td><td>Message-passing update</td><td>Async, non-blocking, distributed by default</td></tr>
+                 <tr><td>Rollback</td><td>Immutable history + state snapshot</td><td>OTP supervision already models restart recovery</td></tr>
+                 <tr><td>Overlap topology</td><td>Supervision graph / process registry</td><td>Process communication graph = constraint graph</td></tr>
+                 <tr><td>Repair propagation</td><td>Actor message routing</td><td>Overlap edges become actual message routes</td></tr>
+                 <tr><td>NUMA / core locality</td><td>Process affinity / node placement</td><td>Physical topology maps to logical topology</td></tr>
+                 <tr><td>Transition log</td><td>Immutable event stream</td><td>Audit trail, replay, debugging — for free</td></tr>
+             </tbody>
+         </table>
+     </div>
+
+     <h3>The "Triple Synchronized Jump"</h3>
+     <p>
+         In Sudoku, a cell lives in three overlapping groups (row, column, box).
+         Placing a value requires <strong>all three groups to agree simultaneously</strong>.
+         This is a distributed transaction across overlapping consistency domains:
+     </p>
+
+     <div class="code-block">
+         <div class="code-header">
+             <strong>Staged multi-group repair</strong>
+             <span>Elixir: RepairTransaction</span>
+         </div>
+         <pre>topology
+ |> RepairTransaction.begin([:row0, :col0, :box0])
+ |> RepairTransaction.stage(:r0c0, 5)   # stage in all 3 groups
+ |> RepairTransaction.verify()           # CRT consistency check
+ |> RepairTransaction.commit()           # atomic multi-group apply</pre>
+         <div class="file-desc" style="padding:12px 18px;border-top:1px solid var(--border);font-size:0.82rem;color:var(--text-muted);">
+             The triple synchronized jump: all overlap groups agree or none do.
+             This is the distributed transaction primitive.
+         </div>
+     </div>
+
+     <h3>Unified Problem Declaration</h3>
+     <p>
+         Sudoku, Latin Squares, N-Queens, scheduling, inventory, CPU repair —
+         all become <strong>topology declarations</strong>:
+     </p>
+
+     <div class="code-block">
+         <div class="code-header">
+             <strong>Unified topology API</strong>
+             <span>One framework, many problems</span>
+         </div>
+         <pre># Sudoku
+topology
+|> add_group(:row0, prime: 11)
+|> add_group(:col0, prime: 13)
+|> add_group(:box0, prime: 17)
+|> add_cell(:r0c0, [:row0, :col0, :box0])
+
+# CPU Scheduling
+topology
+|> add_group(:core0, prime: 5)
+|> add_group(:deadline, prime: 11)
+|> add_cell(:task_a, [:core0, :deadline])
+
+# N-Queens
+topology
+|> add_group(:row, prime: 11)
+|> add_group(:diag_pos, prime: 13)
+|> add_group(:diag_neg, prime: 17)
+|> add_cell(:q4a, [:row, :diag_pos, :diag_neg])</pre>
+     </div>
+
+     <div class="callout callout-info">
+         <strong>The key realization:</strong> overlap edges are no longer metaphorical.
+         When groups become processes and edges become message routes, the topology
+         becomes <em>actual distributed computational geometry</em>. Locality becomes physical.
+         Repair propagation becomes network traffic. The map is the territory.
+     </div>
+</section>
+
+<!-- ===== 7. VERDICT ===== -->
 <section class="blog-section" id="verdict">
     <h2>Bottom Line</h2>
 
@@ -1216,48 +1407,255 @@ The hyperperiod IS the manifold period</pre>
         <div class="metric">
             <div class="metric-value" style="color:var(--success);">✓</div>
             <div class="metric-label">Exact Arithmetic</div>
-            <div class="metric-note">CRT jumps are mathematically proven — no approximation in the core primitive.</div>
+            <div class="metric-note">CRT jumps are mathematically proven. No approximation in the core primitive.</div>
         </div>
         <div class="metric">
             <div class="metric-value" style="color:var(--accent);">O(1)</div>
             <div class="metric-label">Rollback Cost</div>
-            <div class="metric-note">Mutation stack enables constant-time undo — checkpoint-friendly.</div>
+            <div class="metric-note">Mutation stack enables constant-time undo. Checkpoint-friendly.</div>
         </div>
         <div class="metric">
-            <div class="metric-value" style="color:var(--warm);">10–1000×</div>
-            <div class="metric-label">Gap to CP-SAT</div>
-            <div class="metric-note">On general optimization. The primitive is complementary, not competitive.</div>
+            <div class="metric-value" style="color:var(--warm);">100%</div>
+            <div class="metric-label">Mastermind Solved</div>
+            <div class="metric-note">100/100 games. Average 4.47 turns. Theory optimum ~4.34.</div>
         </div>
         <div class="metric">
-            <div class="metric-value" style="color:var(--danger);">~61</div>
-            <div class="metric-label">Math Audit /100</div>
-            <div class="metric-note">CRT core holds. Extensions overclaim. See MATH.md for details.</div>
+            <div class="metric-value" style="color:var(--success);">7/7</div>
+            <div class="metric-label">Traffic Safety</div>
+            <div class="metric-note">All safety scenarios passed. Unsafe states are geometrically unreachable.</div>
         </div>
         <div class="metric">
-            <div class="result-icon">🎯</div>
-            <div class="metric-label">Sudoku (Hierarchical)</div>
-            <div class="metric-note">Distributed CRT jumps across row/col/box groups — each group its own local CRT microspace. Supersedes <code>prime_sudoku.py</code>.</div>
+            <div class="metric-value" style="color:var(--accent);">1</div>
+            <div class="metric-label">Repair Radius</div>
+            <div class="metric-note">Only affected coordinate changes. Warm-cache cores stay locked. <code>z' = z + kM</code></div>
         </div>
     </div>
 
     <blockquote>
-        This framework is best understood as a <strong>specialized exact repair/search primitive</strong>,
-        not a replacement for mature combinatorial solvers. Its commercial value lies in
-        lock-and-repair workflows where preserving partial decisions matters more than global
-        re-optimization.
+        <strong>The core claim:</strong> Preemption is a CRT jump, not a restart. When a task blocks,
+        compute the smallest exact displacement through scheduling space — one coordinate,
+        preserving every locked warm-cache commitment. That's the geometric ELSE branch.
     </blockquote>
 
+    <h3>Geometric IF-ELSE vs Traditional Scheduler</h3>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th></th><th>Traditional Scheduler</th><th>CRT Repair Scheduler</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>IF (commit)</strong></td>
+                    <td>assign task to core</td>
+                    <td>lock residue into CRT coordinate</td>
+                </tr>
+                <tr>
+                    <td><strong>ELSE (repair)</strong></td>
+                    <td>global recomputation</td>
+                    <td>local displacement <code>z' = z + kM</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Preemption</strong></td>
+                    <td>rerun scheduler from scratch</td>
+                    <td>CRT jump — preserves locked cores</td>
+                </tr>
+                <tr>
+                    <td><strong>Rollback</strong></td>
+                    <td>checkpoint + full restore</td>
+                    <td>O(1) — mutation stack</td>
+                </tr>
+                <tr>
+                    <td><strong>Disturbance</strong></td>
+                    <td>many migrations, cache destruction</td>
+                    <td>repair radius = 1 core</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout callout-info">
+        <strong>Ultra-tiny proof:</strong> 2 CPU cores, `z = 16`, one locked core (M=5), task blocks.
+        Compute `k=3`. New state `z' = 31`. CPU0 preserved (31 mod 5 = 1 ✅), CPU1 repaired (31 mod 7 = 3 ✅).
+        Repair radius = 1 CPU. That's the whole thing in 5 lines of algebra.
+    </div>
+
+    <h3>What This Is — and What It Isn't</h3>
+
+    <div class="callout callout-success">
+        <strong>It IS:</strong> An exact lock-and-repair primitive for structured discrete assignment problems.
+        A mechanism for preserving committed decisions while locally fixing disruptions without global recomputation.
+        A framework for <em>locality-preserving repair transitions</em> in distributed scheduling systems.
+    </div>
+
+    <div class="callout callout-warn">
+        <strong>Not for:</strong> General optimization where CP-SAT dominates.
+        Large-domain problems. Continuous domains. Competitive with mature exact solvers on broad CSPs.
+    </div>
+
     <p>
-        <strong>Strongest fit:</strong> Small-alphabet, high-constraint, high-cost-of-mistakes
-        assignment problems — staff rostering, order promising, dispatch routing, exam scheduling.
-    </p>
-    <p>
-        <strong>Not for:</strong> Large-domain optimization, continuous problems, or competing
-        with CP-SAT on general allocation.
+        <strong>Best fit:</strong> Small-alphabet, high-constraint, high-cost-of-mistakes assignment problems
+        — staff rostering, field-service dispatch, order promising, exam scheduling, GPU allocation.
+        Problems where <em>preserving partial decisions</em> matters more than global re-optimization.
     </p>
 </section>
 
-<!-- ===== 7. CODEBASE ===== -->
+<!-- ===== 8. GEOMETRIC IF-ELSE ===== -->
+<section class="blog-section" id="geometric-ifelse">
+    <div class="section-kicker">Mature Definition</div>
+    <h2>Geometric IF-ELSE</h2>
+    <p class="subtitle">
+        Branching interpreted as movement through a hierarchy of local consistency neighborhoods,
+        with ELSE corresponding to the minimal valid repair displacement preserving existing commitments.
+    </p>
+
+    <blockquote>
+        <strong>Geometric IF-ELSE</strong> is branching computation interpreted as ultrametric local repair
+        over overlapping discrete consistency domains.
+    </blockquote>
+
+    <h3>Traditional IF-ELSE</h3>
+
+    <div class="code-block">
+        <div class="code-header">
+            <strong>Normal branching</strong>
+            <span>two symbolic paths, no geometry</span>
+        </div>
+        <pre>if condition:
+    state_A       # unrelated symbolic path
+else:
+    state_B       # arbitrary recomputation</pre>
+    </div>
+
+    <p>
+        There is no geometry. No locality. No notion of distance. The ELSE branch means "do something
+        else" — unrelated control flow with no structural relationship to the IF branch.
+    </p>
+
+    <h3>Geometric IF-ELSE</h3>
+
+    <div class="math-block">
+        <div class="math-label">The mapping</div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+            <tr>
+                <td style="padding:6px 8px;font-weight:600;color:var(--text);">current state</td>
+                <td style="padding:6px 8px;color:var(--text-secondary);">= point inside overlap topology</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 8px;font-weight:600;color:var(--text);">constraints</td>
+                <td style="padding:6px 8px;color:var(--text-secondary);">= local consistency neighborhoods</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 8px;font-weight:600;color:var(--text);">locked commitments</td>
+                <td style="padding:6px 8px;color:var(--text-secondary);">= invariant coordinates</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 8px;font-weight:600;color:var(--text);">ELSE branch</td>
+                <td style="padding:6px 8px;color:var(--text-secondary);">= smallest valid displacement preserving invariants</td>
+            </tr>
+        </table>
+    </div>
+
+    <p>
+        The branch itself gains topology, locality, distance, and repair semantics. It is no longer
+        "do something else" — it becomes:
+    </p>
+
+    <blockquote>
+        Compute the nearest valid state transition preserving the deepest possible consistency structure.
+    </blockquote>
+
+    <h3>The Exact Algebra</h3>
+
+    <div class="math-block">
+        <div class="math-label">Repair displacement</div>
+        $$z' = z + kM, \qquad M = \prod_{p_i \in S} p_i$$
+        <p style="margin:8px 0 0;font-size:0.85rem;color:var(--text-muted);">
+            Preserves all protected residues. Modifies only required coordinates. ELSE becomes a
+            computed displacement, not a control-flow fork.
+        </p>
+    </div>
+
+    <h3>Why p-adics Complete the Picture</h3>
+
+    <p>
+        The p-adic repair metric gives ELSE a literal distance:
+    </p>
+
+    <div class="math-block">
+        <div class="math-label">Ultrametric repair distance</div>
+        $$d_R(z, z') = \alpha^{-v_R(z, z')}$$
+
+        $$v_R(z, z') = \max\{n : z' \equiv z \pmod{p_1 p_2 \ldots p_n}\}$$
+
+        <p style="margin:8px 0 0;font-size:0.85rem;color:var(--text-muted);">
+            Two states are close when they share many layers of preserved commitment structure.
+            The valuation $v_R$ counts exactly how many nested locks survived the transition.
+        </p>
+    </div>
+
+    <p>
+        Local repair = small p-adic displacement. Catastrophic rebalance = large ultrametric jump.
+        The ELSE branch is no longer arbitrary — it is the <strong>shortest path through ultrametric
+        consistency space</strong>.
+    </p>
+
+    <h3>The Algorithmic Split</h3>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Component</th><th>Role</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Matching / augmenting paths</strong></td><td>compute minimal repair chain</td></tr>
+                <tr><td><strong>CRT</strong></td><td>exact invariant-preserving displacement</td></tr>
+                <tr><td><strong>p-adics</strong></td><td>locality metric (ultrametric distance)</td></tr>
+                <tr><td><strong>Topology</strong></td><td>legal overlap structure</td></tr>
+                <tr><td><strong>Actors</strong></td><td>distributed execution</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout callout-info">
+        <strong>CRT is NOT "the optimizer."</strong> CRT is the exact displacement algebra.
+        The optimizer is matching, flow, and repair search. CRT supplies the invariant-preserving
+        jump; the topology supplies the legal moves; the matching supplies the minimal path.
+        p-adics supply the geometry that proves they belong together.
+    </div>
+
+    <h3>CPU Scheduling Intuition</h3>
+
+    <div class="code-block">
+        <div class="code-header">
+            <strong>Traditional vs Geometric ELSE</strong>
+        </div>
+        <pre># Traditional scheduler
+task blocks
+→ rerun scheduler from scratch
+
+# Geometric IF-ELSE scheduler
+task blocks
+→ remain inside same consistency neighborhood
+→ preserve cache-affine assignments
+→ compute smallest legal repair displacement</pre>
+    </div>
+
+    <p>
+        ELSE becomes local movement, not restart. The scheduler doesn't recompute — it navigates
+        the nearest valid state through ultrametric repair space.
+    </p>
+
+    <div class="callout callout-success" style="margin-top:24px;">
+        <strong>Experimental verification:</strong> <code>padic_check.py</code> confirms the ultrametric
+        inequality holds across 2000 random triples with zero violations. The p-adic distance
+        <code>d_R = 2^{-v_R}</code> exactly matches the repair depth. The geometry is real —
+        verified in code, not just asserted in prose. See <a href="PADIC.md">PADIC.md</a> and
+        <a href="padic_problem.py">padic_problem.py</a>.
+    </div>
+</section>
+
+<!-- ===== 9. CODEBASE ===== -->
 <section class="blog-section" id="codebase">
     <h2>Codebase Map</h2>
     <p>
@@ -1380,6 +1778,54 @@ The hyperperiod IS the manifold period</pre>
 
      <details class="file-card">
          <summary>
+             <span class="file-name">src/crt_group.erl</span>
+             <span class="file-kind core">Core</span>
+         </summary>
+         <div class="file-desc">Erlang gen_server: one lightweight actor per constraint group. Manages local residues, lock enforcement, and rollback via immutable history.</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
+             <span class="file-name">src/scheduler_topology.erl</span>
+             <span class="file-kind core">Core</span>
+         </summary>
+         <div class="file-desc">Erlang coordinator: owns global CRT coordinate z, computes cache-affinity shield M, orchestrates local CRT-repair jumps, maintains transition log.</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
+             <span class="file-name">src/constraint_topology.ex</span>
+             <span class="file-kind core">Core</span>
+         </summary>
+         <div class="file-desc">Elixir module: declarative overlap graph. Declares groups, shared cells, and pairwise edges. The "map" any repair coordinator reads.</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
+             <span class="file-name">src/constraint_group.ex</span>
+             <span class="file-kind core">Core</span>
+         </summary>
+         <div class="file-desc">Elixir GenServer: one actor per constraint domain. Owns local residues, enforces locks, maintains immutable event history for rollback.</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
+             <span class="file-name">src/repair_transaction.ex</span>
+             <span class="file-kind core">Core</span>
+         </summary>
+         <div class="file-desc">Elixir: atomic multi-group staged repair. Snapshot, stage, verify, commit or rollback. The "triple synchronized jump" for overlapping cells.</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
+             <span class="file-name">src/repair_coordinator.ex</span>
+             <span class="file-kind core">Core</span>
+         </summary>
+         <div class="file-desc">Elixir GenServer: owns global CRT coordinate z, dispatches local CRT jumps, computes cache-affinity shields, maintains the immutable repair log.</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
              <span class="file-name">src/prime_word_ladder.py</span>
              <span class="file-kind explore">Explore</span>
          </summary>
@@ -1443,7 +1889,7 @@ The hyperperiod IS the manifold period</pre>
     </details>
 </section>
 
-<!-- ===== 8. WHAT IT IS / ISN'T ===== -->
+<!-- ===== 10. WHAT IT IS / ISN'T ===== -->
 <section class="blog-section" id="links">
     <h2>What This Is (and Isn't)</h2>
 

@@ -449,6 +449,8 @@ this is fundamentally a **transactional local repair database for scheduling geo
 
 ## The Meta-Patterns
 
+## The Meta-Patterns
+
 Across all experiments, the same phenomena kept appearing:
 
 | Repeated Phenomenon | Meaning |
@@ -489,6 +491,12 @@ src/
 ├── prime_regex_manifold.py     # NFA as multi-sheet manifold navigation
 ├── crt_sudoku_hierarchical.py  # Multi-dimensional Sudoku via distributed CRT jumps (supersedes prime_sudoku.py)
 ├── cpu_scheduling.py          # 4-core CPU scheduler with CRT lock-and-repair, ER-style architecture
+├── crt_group.erl              # Erlang gen_server: one actor per constraint group
+├── scheduler_topology.erl     # Erlang coordinator: global z, cache-affinity shield, repair dispatch
+├── constraint_topology.ex     # Elixir module: declarative overlap graph for distributed CRT repair
+├── constraint_group.ex        # Elixir GenServer: local constraint domain with lock/rollback
+├── repair_transaction.ex      # Elixir: atomic multi-group staged repair with commit/rollback
+└── repair_coordinator.ex      # Elixir GenServer: global z, CRT jump dispatch, repair log
 
 docs/
 ├── MATH.md                    # Mathematical formulation and PyTorch implementation
