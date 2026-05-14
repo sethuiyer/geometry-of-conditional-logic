@@ -24,9 +24,9 @@ from typing import Dict, List, Optional, Tuple
 
 from ortools.sat.python import cp_model
 
-from large_scale_benchmark import random_inventory_instance, random_prime_timetable_instance
-from prime_hypergraph_timetabling import Course, PrimeHypergraphTimetabler, resources_of
-from prime_inventory_allocation import Order, PrimeInventoryAllocator
+from src.benchmarks.scaling import random_inventory_instance, random_prime_timetable_instance
+from src.domains.scheduling.timetabling import Course, PrimeHypergraphTimetabler, resources_of
+from src.domains.logistics.inventory import Order, PrimeInventoryAllocator
 
 
 @dataclass

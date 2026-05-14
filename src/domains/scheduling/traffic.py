@@ -289,54 +289,50 @@ def run_scenario(name, sensor_data, nn, epochs=500, lr=0.05):
 # ---------------------------------------------------------
 # 5. RUN ALL SCENARIOS
 # ---------------------------------------------------------
-nn = TrafficNN(input_size=6, hidden_size=32)
+def main():
+    nn = TrafficNN(input_size=6, hidden_size=32)
 
-scenarios = [
-    ("Rush Hour: Heavy North-South Traffic",
-     [12.0, 3.0, 0.0, 0.0, 0.0, 17.5]),
-    
-    ("Evening: East-West Dominant",
-     [2.0, 8.0, 0.0, 0.0, 0.0, 18.0]),
-    
-    ("EMERGENCY: Ambulance on North-South",
-     [5.0, 5.0, 1.0, 0.0, 0.0, 14.0]),
-    
-    ("EMERGENCY: Fire Truck on East-West",
-     [10.0, 2.0, 0.0, 1.0, 0.0, 10.0]),
-    
-    ("Pedestrian Crossing Request",
-     [6.0, 4.0, 0.0, 0.0, 1.0, 12.0]),
-    
-    ("Late Night: Minimal Traffic",
-     [0.0, 0.0, 0.0, 0.0, 0.0, 2.0]),
-    
-    ("Conflict: Emergency NS + Pedestrian (Emergency Wins)",
-     [5.0, 5.0, 1.0, 0.0, 1.0, 15.0]),
-]
+    scenarios = [
+        ("Rush Hour: Heavy North-South Traffic",
+         [12.0, 3.0, 0.0, 0.0, 0.0, 17.5]),
+        ("Evening: East-West Dominant",
+         [2.0, 8.0, 0.0, 0.0, 0.0, 18.0]),
+        ("EMERGENCY: Ambulance on North-South",
+         [5.0, 5.0, 1.0, 0.0, 0.0, 14.0]),
+        ("EMERGENCY: Fire Truck on East-West",
+         [10.0, 2.0, 0.0, 1.0, 0.0, 10.0]),
+        ("Pedestrian Crossing Request",
+         [6.0, 4.0, 0.0, 0.0, 1.0, 12.0]),
+        ("Late Night: Minimal Traffic",
+         [0.0, 0.0, 0.0, 0.0, 0.0, 2.0]),
+        ("Conflict: Emergency NS + Pedestrian (Emergency Wins)",
+         [5.0, 5.0, 1.0, 0.0, 1.0, 15.0]),
+    ]
 
-results = []
-for name, sensor_data in scenarios:
-    success = run_scenario(name, sensor_data, nn)
-    results.append((name, success))
+    results = []
+    for name, sensor_data in scenarios:
+        success = run_scenario(name, sensor_data, nn)
+        results.append((name, success))
 
-# ---------------------------------------------------------
-# 6. FINAL REPORT
-# ---------------------------------------------------------
-print(f"\n{'=' * 65}")
-print("FINAL SAFETY REPORT")
-print(f"{'=' * 65}")
-all_passed = True
-for name, success in results:
-    status = "✅ PASS" if success else "❌ FAIL"
-    print(f"  {status}  {name}")
-    if not success:
-        all_passed = False
+    print(f"\n{'=' * 65}")
+    print("FINAL SAFETY REPORT")
+    print(f"{'=' * 65}")
+    all_passed = True
+    for name, success in results:
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"  {status}  {name}")
+        if not success:
+            all_passed = False
 
-print(f"\n{'─' * 65}")
-if all_passed:
-    print("  🏆 ALL SCENARIOS PASSED: Zero safety violations.")
-    print("  The Prime-Topology guarantee holds: the neural network")
-    print("  CANNOT output an unsafe traffic configuration.")
-else:
-    print("  ⚠️  Some scenarios failed. Review needed.")
-print(f"{'─' * 65}")
+    print(f"\n{'─' * 65}")
+    if all_passed:
+        print("  🏆 ALL SCENARIOS PASSED: Zero safety violations.")
+        print("  The Prime-Topology guarantee holds: the neural network")
+        print("  CANNOT output an unsafe traffic configuration.")
+    else:
+        print("  ⚠️  Some scenarios failed. Review needed.")
+    print(f"{'─' * 65}")
+
+
+if __name__ == "__main__":
+    main()

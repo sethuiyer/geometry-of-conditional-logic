@@ -14,8 +14,8 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from src.constraint_topology import ConstraintTopology
-from src.local_crt_repair import LocalCRTGroup, default_primes
+from src.core.topology import ConstraintTopology
+from src.core.local_crt import LocalCRTGroup, default_primes
 
 
 def build_mesh(grid_size: int, domain: int = 5):

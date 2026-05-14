@@ -21,7 +21,7 @@ import random
 from copy import deepcopy
 
 sys.path.insert(0, "src")
-from crt_sudoku_hierarchical import (
+from src.domains.sudoku.hierarchical import (
     ConstraintGroup, create_groups, try_place, solve, print_board, get_box_id
 )
 
@@ -102,21 +102,17 @@ def repair_after_perturbation(groups, empty_cells, perturbations):
                 new_empty.append((r, c))
 
     # Monkey-patch solve to count calls
-    import src.crt_sudoku_hierarchical as mod
+    import src.domains.sudoku.hierarchical as mod
     original_solve = mod.solve
     call_count = [0]
 
     def solve_with_count(grps, empty):
         call_count[0] += 1
-        return original_solve(grps, empty)
-
-    mod.solve = solve_with_count
+        return src.domains.sudoku.hierarchical.solve(grps, empty)
 
     t_start = time.time()
     success = solve(new_groups, new_empty)
     t_repair = time.time() - t_start
-
-    mod.solve = original_solve
 
     if not success:
         return False, t_repair, None, None, call_count[0]

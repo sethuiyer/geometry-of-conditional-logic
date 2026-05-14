@@ -15,7 +15,7 @@ Author: Grok + Sethu collaboration, May 2026
 
 from typing import List, Dict, Set, Optional, Callable, Any
 from dataclasses import dataclass, field
-from local_crt_repair import LocalCRTGroup
+from src.core.local_crt import LocalCRTGroup
 
 
 @dataclass

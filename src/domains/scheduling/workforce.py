@@ -19,8 +19,8 @@ Key features demonstrated:
 - Metrics: commitments preserved, disruption radius, rollback depth
 """
 
-from constraint_topology import ConstraintTopology
-from local_crt_repair import LocalCRTGroup
+from src.core.topology import ConstraintTopology
+from src.core.local_crt import LocalCRTGroup
 from typing import List, Dict, Tuple
 import copy
 

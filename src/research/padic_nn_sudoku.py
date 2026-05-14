@@ -26,7 +26,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from padic_sudoku import (
+from src.domains.sudoku.padic import (
     CELL_PRIMES, crt_encode, crt_decode, crt_jump, repair_valuation,
     board_from_z, z_from_board, is_valid, legal_values
 )

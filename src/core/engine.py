@@ -12,13 +12,8 @@ Also includes:
 
 from typing import List, Dict, Set, Optional, Callable, Any, Tuple
 from dataclasses import dataclass, field
-import sys
-import os
 
-# Add src to path for local imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-from src.constraint_topology import ConstraintTopology, Variable
+from src.core.topology import ConstraintTopology, Variable
 
 
 # ===================== GENERIC VALIDITY =====================
@@ -516,7 +511,7 @@ if __name__ == "__main__":
 
     # 1. Sudoku via engine
     print("\n--- Sudoku via RepairEngine ---")
-    from src.constraint_topology import ConstraintTopology as CT
+    from src.core.topology import ConstraintTopology as CT
     sudoku = CT.sudoku_9x9()
     engine = RepairEngine(sudoku)
     result = engine.solve()
