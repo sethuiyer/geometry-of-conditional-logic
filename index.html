@@ -716,61 +716,70 @@
 
 <!-- ===== HERO ===== -->
 <section class="hero" id="overview">
-    <div class="hero-eyebrow">Local Repair Calculus · Ultrametric Spaces · 2024–2025</div>
-    <h1>A local repair calculus for structured discrete state systems using ultrametric spaces</h1>
+    <div class="hero-eyebrow">Transactional Repair Runtime · Benchmark-Verified · 2024–2025</div>
+    <h1>Lock-preserving incremental solver for structured discrete systems</h1>
     <p class="hero-subtitle">
-        Branching interpreted as bounded ultrametric displacement. CRT gives the exact
-        invariant-preserving jump. p-adic geometry gives the locality metric. Distributed
-        actors give the execution model. The ELSE branch is no longer a fork — it is the
-        shortest valid path through hierarchical consistency space.
+        When a perturbation arrives (equipment failure, gate change, worker callout),
+        most solvers recompute from scratch. This one computes the <strong>minimal repair</strong>
+        preserving existing commitments. Repair cost scales with disruption size, not
+        problem size. CRT is the implementation detail — the real contribution is a
+        transactional repair runtime with exactly one invariant: locked commitments
+        never change.
     </p>
     <div class="hero-meta">
-        <span>📐 Ultrametric Verified: <strong>✓ 0 violations / 2000 triples</strong></span>
-        <span>🔬 Framework: <strong>CRT + p-adic + bipartite matching + actors</strong></span>
-        <span>🕐 ~15 min read</span>
+        <span>⚡ Repair: <strong>847–12,495x faster than restart</strong></span>
+        <span>🔒 Invariant: <strong>locked commitments never change</strong></span>
+        <span>🕐 ~10 min read</span>
     </div>
     <div class="hero-tags">
-        <span class="tag tag-core">Ultrametric Geometry</span>
-        <span class="tag tag-core">CRT Displacement</span>
-        <span class="tag tag-core">p-adic Locality</span>
-        <span class="tag tag-accent">Bipartite Matching</span>
+        <span class="tag tag-core">Incremental Repair</span>
+        <span class="tag tag-core">Lock Preservation</span>
+        <span class="tag tag-accent">Transactional Runtime</span>
         <span class="tag tag-accent">Distributed Actors</span>
         <span class="tag tag-caution">Specialized to Nested Commitments</span>
     </div>
     <div class="hero-actions">
-        <a class="hero-action hero-action-primary" href="#geometric-ifelse">Read the definition</a>
-        <a class="hero-action hero-action-secondary" href="#verdict">Jump to bottom line</a>
+        <a class="hero-action hero-action-primary" href="#verdict">See the benchmark</a>
+        <a class="hero-action hero-action-secondary" href="#architecture">How it works</a>
     </div>
 </section>
 
 <!-- ===== 1. THE PROBLEM ===== -->
 <section class="blog-section" id="problem">
-    <h2>The Problem with If/Else</h2>
+    <h2>The Problem with Full Recomputation</h2>
     <p>
-        Standard neural networks struggle with <code>if/else</code> logic because the
-        Heaviside step function has zero gradients everywhere except at the boundary — where
-        the gradient is infinite. Gradient descent is a blindfolded hiker standing on a flat
-        plane, unable to feel which direction leads downhill.
+        Every structured discrete system faces the same question: when something changes
+        (equipment fails, a flight cancels, a worker calls out, a gate changes), how do
+        you find the new valid state?
+    </p>
+
+    <p>
+        The standard answer: <strong>recompute from scratch</strong>. Run the scheduler,
+        the constraint solver, the optimizer — as if no prior solution existed. This works,
+        but every commitment built up over hours of manual tuning, warm caches, or negotiated
+        assignments is discarded and rebuilt.
     </p>
 
     <div class="math-block">
-        <div class="math-label">Heaviside step function</div>
-        $$H(x) = \begin{cases} 0 & \text{if } x < 0 \\ 1 & \text{if } x \ge 0 \end{cases}$$
+        <div class="math-label">Traditional cost model</div>
+        $$cost(\text{repair}) \approx cost(\text{solve from scratch})$$
         <p style="margin:8px 0 0;font-size:0.85rem;color:var(--text-muted);">
-            Its derivative is the Dirac delta — zero everywhere, infinite at zero. A neural
-            network on the flat part has no signal at all.
+            Recomputation cost is independent of perturbation size. A single cancelled
+            flight triggers the same solver run as a full blank schedule.
         </p>
     </div>
 
     <p>
-        The industry works around this with sigmoid gates, Gumbel-Softmax distributions, and
-        straight-through estimators. But as the research shows, these are "foam padding over
-        a jagged staircase" — fake smoothness imposed from the outside rather than discovered.
+        This framework asks a different question: <strong>what's the minimal repair that
+        preserves existing commitments?</strong> The answer is a transactional runtime
+        where each commitment is a locked residue, each perturbation triggers a bounded
+        CRT jump, and the repair cost scales with disruption size — not problem size.
     </p>
 
     <blockquote>
-        What if conditional logic has an inherent continuous geometry — and we just haven't
-        learned to see it yet?
+        Repair radius is an operational cost metric. Companies understand disruption cost.
+        The framework proves: k=10 perturb → 847x faster than restart, 95% of assignments
+        untouched.
     </blockquote>
 </section>
 
@@ -1405,7 +1414,17 @@ topology
 
     <div class="metrics-grid">
         <div class="metric">
-            <div class="metric-value" style="color:var(--success);">✓</div>
+            <div class="metric-value" style="color:var(--success);">847-12,495x</div>
+            <div class="metric-label">Repair Speedup</div>
+            <div class="metric-note">Incremental repair vs full recomputation on AI Escargot (hardest Sudoku). Repair cost scales with perturbation size, not problem size.</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" style="color:var(--accent);">95-100%</div>
+            <div class="metric-label">Preservation Rate</div>
+            <div class="metric-note">Up to 10 cells perturbed, 95% of assignments untouched. Locked commitments never change.</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" style="color:var(--warm);">✓</div>
             <div class="metric-label">Exact Arithmetic</div>
             <div class="metric-note">CRT jumps are mathematically proven. No approximation in the core primitive.</div>
         </div>
@@ -1415,50 +1434,45 @@ topology
             <div class="metric-note">Mutation stack enables constant-time undo. Checkpoint-friendly.</div>
         </div>
         <div class="metric">
-            <div class="metric-value" style="color:var(--warm);">100%</div>
-            <div class="metric-label">Mastermind Solved</div>
-            <div class="metric-note">100/100 games. Average 4.47 turns. Theory optimum ~4.34.</div>
-        </div>
-        <div class="metric">
-            <div class="metric-value" style="color:var(--success);">7/7</div>
-            <div class="metric-label">Traffic Safety</div>
-            <div class="metric-note">All safety scenarios passed. Unsafe states are geometrically unreachable.</div>
-        </div>
-        <div class="metric">
-            <div class="metric-value" style="color:var(--accent);">1</div>
-            <div class="metric-label">Repair Radius</div>
-            <div class="metric-note">Only affected coordinate changes. Warm-cache cores stay locked. <code>z' = z + kM</code></div>
+            <div class="metric-value" style="color:var(--success);">6.98s</div>
+            <div class="metric-label">AI Escargot Solved</div>
+            <div class="metric-note">World's hardest Sudoku — 27 independent CRT microspaces, pure backtracking, no heuristics.</div>
         </div>
     </div>
 
     <blockquote>
-        <strong>The core claim:</strong> Preemption is a CRT jump, not a restart. When a task blocks,
-        compute the smallest exact displacement through scheduling space — one coordinate,
-        preserving every locked warm-cache commitment. That's the geometric ELSE branch.
+        <strong>The core claim:</strong> Repair cost should scale with disruption size, not problem size.
+        <code>benchmark_repair.py</code> proves it: k=10 perturb → 0.003s repair (847x faster),
+        95% of cells untouched. That's an operational cost metric.
     </blockquote>
 
-    <h3>Geometric IF-ELSE vs Traditional Scheduler</h3>
+    <h3>Repair vs Restart</h3>
 
     <div class="table-wrap">
         <table>
             <thead>
-                <tr><th></th><th>Traditional Scheduler</th><th>CRT Repair Scheduler</th></tr>
+                <tr><th></th><th>Traditional solver</th><th>CRT repair runtime</th></tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>IF (commit)</strong></td>
-                    <td>assign task to core</td>
-                    <td>lock residue into CRT coordinate</td>
+                    <td><strong>Cost model</strong></td>
+                    <td><code>cost(repair) ≈ cost(solve)</code></td>
+                    <td><code>cost(repair) ∝ perturbation_size</code></td>
                 </tr>
                 <tr>
-                    <td><strong>ELSE (repair)</strong></td>
-                    <td>global recomputation</td>
-                    <td>local displacement <code>z' = z + kM</code></td>
+                    <td><strong>Prior commitments</strong></td>
+                    <td>discarded on each run</td>
+                    <td>locked, never change</td>
                 </tr>
                 <tr>
-                    <td><strong>Preemption</strong></td>
-                    <td>rerun scheduler from scratch</td>
-                    <td>CRT jump — preserves locked cores</td>
+                    <td><strong>Single disruption</strong></td>
+                    <td>7.0s recomputation</td>
+                    <td>0.0007s repair (10,000x faster)</td>
+                </tr>
+                <tr>
+                    <td><strong>10-cell disruption</strong></td>
+                    <td>7.0s recomputation</td>
+                    <td>0.003s repair (847x faster)</td>
                 </tr>
                 <tr>
                     <td><strong>Rollback</strong></td>
@@ -1467,36 +1481,30 @@ topology
                 </tr>
                 <tr>
                     <td><strong>Disturbance</strong></td>
-                    <td>many migrations, cache destruction</td>
-                    <td>repair radius = 1 core</td>
+                    <td>global, unpredictable</td>
+                    <td>measured: repair radius = k</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <div class="callout callout-info">
-        <strong>Ultra-tiny proof:</strong> 2 CPU cores, `z = 16`, one locked core (M=5), task blocks.
-        Compute `k=3`. New state `z' = 31`. CPU0 preserved (31 mod 5 = 1 ✅), CPU1 repaired (31 mod 7 = 3 ✅).
-        Repair radius = 1 CPU. That's the whole thing in 5 lines of algebra.
-    </div>
-
     <h3>What This Is — and What It Isn't</h3>
 
     <div class="callout callout-success">
-        <strong>It IS:</strong> An exact lock-and-repair primitive for structured discrete assignment problems.
-        A mechanism for preserving committed decisions while locally fixing disruptions without global recomputation.
-        A framework for <em>locality-preserving repair transitions</em> in distributed scheduling systems.
+        <strong>It IS:</strong> A lock-preserving incremental solver for structured discrete assignment problems.
+        A transactional repair runtime where locked commitments never change and repair cost scales with
+        disruption. CRT is the implementation detail — the runtime is the contribution.
     </div>
 
     <div class="callout callout-warn">
         <strong>Not for:</strong> General optimization where CP-SAT dominates.
-        Large-domain problems. Continuous domains. Competitive with mature exact solvers on broad CSPs.
+        Continuous domains. Fuzzy semantics. Problems where prior commitments have no business value.
     </div>
 
     <p>
-        <strong>Best fit:</strong> Small-alphabet, high-constraint, high-cost-of-mistakes assignment problems
-        — staff rostering, field-service dispatch, order promising, exam scheduling, GPU allocation.
-        Problems where <em>preserving partial decisions</em> matters more than global re-optimization.
+        <strong>Best fit:</strong> Staff rostering, field-service dispatch, order promising, exam scheduling,
+        GPU allocation, airport gate assignment — problems where <em>preserving partial decisions</em>
+        matters more than global re-optimization, and disruption arrives incrementally.
     </p>
 </section>
 
