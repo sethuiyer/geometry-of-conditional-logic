@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometric IF-ELSE | Topology-driven exact repair for structured discrete systems</title>
+    <title>Geometric IF-ELSE — Topology-driven Exact Repair for Structured Discrete Systems</title>
     <script async defer src="https://beampipe.io/js/tracker.js" data-beampipe-domain="sethuiyer.github.io"></script>
     <meta name="description" content="A three-layer architecture for constraint repair: ConstraintTopology (hypergraph), LocalCRTGroup (CRT arithmetic kernel), RepairEngine (generic lock-and-repair). Code, benchmarks, and demos.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,924 +14,853 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
     <style>
         :root {
-            --bg: #f4f1ea;
-            --paper: rgba(255, 252, 245, 0.88);
-            --panel: #fffaf1;
-            --panel-strong: #f5eee2;
-            --line: rgba(42, 51, 52, 0.12);
-            --line-strong: rgba(42, 51, 52, 0.2);
-            --text: #182022;
-            --text-soft: #546164;
-            --text-muted: #788488;
+            --bg: #fafaf7;
+            --bg-warm: #f7f4ee;
+            --paper: #fffef8;
+            --paper-hover: #fffcf3;
+            --border: rgba(42, 51, 52, 0.10);
+            --border-strong: rgba(42, 51, 52, 0.18);
+            --text: #1a2022;
+            --text-secondary: #4a5556;
+            --text-muted: #7a888c;
             --accent: #0f766e;
-            --accent-soft: rgba(15, 118, 110, 0.12);
+            --accent-light: rgba(15, 118, 110, 0.08);
+            --accent-hover: #0d645c;
             --warm: #b45309;
-            --warm-soft: rgba(180, 83, 9, 0.12);
+            --warm-light: rgba(180, 83, 9, 0.08);
             --danger: #b42318;
-            --danger-soft: rgba(180, 35, 24, 0.1);
+            --danger-light: rgba(180, 35, 24, 0.07);
             --success: #166534;
-            --success-soft: rgba(22, 101, 52, 0.1);
-            --shadow: 0 18px 60px rgba(26, 32, 34, 0.08);
-            --radius: 22px;
-            --radius-sm: 14px;
-            --content: 1180px;
+            --success-light: rgba(22, 101, 52, 0.07);
+            --shadow-sm: 0 1px 3px rgba(26, 32, 34, 0.06);
+            --shadow-md: 0 4px 16px rgba(26, 32, 34, 0.07);
+            --shadow-lg: 0 12px 40px rgba(26, 32, 34, 0.10);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --content-width: 740px;
+            --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-mono: "IBM Plex Mono", "SF Mono", "Fira Code", monospace;
+            --font-serif: "Newsreader", "Georgia", "Times New Roman", serif;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; font-size: 17px; }
 
         body {
-            margin: 0;
-            font-family: "IBM Plex Sans", sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 28%),
-                radial-gradient(circle at top right, rgba(180, 83, 9, 0.08), transparent 24%),
-                linear-gradient(180deg, #f7f4ee 0%, #f0ebe3 100%);
+            font-family: var(--font-sans);
+            background: var(--bg);
             color: var(--text);
-            line-height: 1.65;
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
         }
 
-        a {
-            color: var(--accent);
-            text-decoration: none;
+        a { color: var(--accent); text-decoration: none; transition: color 0.15s; }
+        a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+        code, pre, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+        code:not(pre code) {
+            background: var(--accent-light);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        pre code { font-size: 0.85rem; }
+
+        img { max-width: 100%; display: block; }
+
+        /* === LAYOUT === */
+        .site-wrapper {
+            display: flex;
+            min-height: 100vh;
         }
 
-        a:hover {
-            text-decoration: underline;
-        }
-
-        code, pre, .mono {
-            font-family: "IBM Plex Mono", monospace;
-        }
-
-        img {
-            max-width: 100%;
-            display: block;
-        }
-
-        .shell {
-            width: min(var(--content), calc(100vw - 32px));
-            margin: 0 auto;
-        }
-
-        .topbar {
+        /* === SIDEBAR (TOC) === */
+        .sidebar {
             position: sticky;
             top: 0;
-            z-index: 20;
-            backdrop-filter: blur(16px);
-            background: rgba(244, 241, 234, 0.82);
-            border-bottom: 1px solid var(--line);
-        }
-
-        .topbar-inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 24px;
-            padding: 14px 0;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
-        }
-
-        .brand-mark {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
-            color: #fff;
-            display: grid;
-            place-items: center;
-            font-family: "IBM Plex Mono", monospace;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            box-shadow: var(--shadow);
-        }
-
-        .brand-copy {
-            min-width: 0;
-        }
-
-        .brand-name {
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .brand-sub {
-            font-size: 12px;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 18px;
-            justify-content: flex-end;
-        }
-
-        .nav a {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-soft);
-        }
-
-        .hero {
-            padding: 72px 0 36px;
-        }
-
-        .hero-card {
+            height: 100vh;
+            width: 280px;
+            min-width: 280px;
+            padding: 48px 28px 40px 36px;
             background: var(--paper);
-            border: 1px solid var(--line);
-            border-radius: 32px;
-            box-shadow: var(--shadow);
-            padding: 42px;
-            position: relative;
-            overflow: hidden;
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            font-size: 0.88rem;
         }
 
-        .hero-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(circle at 15% 15%, rgba(15, 118, 110, 0.08), transparent 28%),
-                radial-gradient(circle at 85% 0%, rgba(180, 83, 9, 0.08), transparent 24%);
-            pointer-events: none;
-        }
-
-        .hero-grid {
-            position: relative;
-            display: grid;
-            grid-template-columns: 1.6fr 0.95fr;
-            gap: 28px;
-            align-items: start;
-        }
-
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: var(--accent-soft);
-            color: var(--accent);
-            font-size: 12px;
+        .sidebar-title {
+            font-family: var(--font-serif);
+            font-size: 1.15rem;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 18px;
+            color: var(--text);
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
         }
 
-        .eyebrow::before {
-            content: "";
-            width: 7px;
-            height: 7px;
-            border-radius: 999px;
-            background: var(--accent);
-        }
-
-        h1 {
-            margin: 0 0 16px;
-            font-family: "Newsreader", serif;
-            font-size: clamp(2.7rem, 6vw, 5.1rem);
-            line-height: 0.98;
-            letter-spacing: -0.04em;
-        }
-
-        .hero-lead {
-            font-size: 1.08rem;
-            color: var(--text-soft);
-            max-width: 760px;
-            margin: 0 0 20px;
-        }
-
-        .hero-summary {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin: 24px 0 0;
-        }
-
-        .pill {
-            border: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 999px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: var(--text-soft);
-        }
-
-        .hero-side {
-            display: grid;
-            gap: 14px;
-        }
-
-        .side-card {
-            background: rgba(255, 255, 255, 0.74);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 18px 18px 16px;
-        }
-
-        .side-kicker {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+        .sidebar-subtitle {
+            font-size: 0.78rem;
             color: var(--text-muted);
-            margin-bottom: 10px;
+            margin-bottom: 28px;
+            line-height: 1.5;
         }
 
-        .score {
-            font-family: "IBM Plex Mono", monospace;
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 8px;
-        }
-
-        .score-note {
-            font-size: 14px;
-            color: var(--text-soft);
-        }
-
-        .button-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 18px;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 44px;
-            padding: 0 16px;
-            border-radius: 999px;
-            border: 1px solid transparent;
-            font-weight: 700;
-            font-size: 14px;
-            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
+        .toc-list { list-style: none; }
+        .toc-list li { margin-bottom: 2px; }
+        .toc-list a {
+            display: block;
+            padding: 5px 0;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-left: 2px solid transparent;
+            padding-left: 10px;
+            transition: all 0.15s;
             text-decoration: none;
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
-            color: #fff;
-            box-shadow: 0 16px 30px rgba(15, 118, 110, 0.18);
-        }
-
-        .btn-secondary {
-            border-color: var(--line-strong);
-            color: var(--text);
-            background: rgba(255, 255, 255, 0.64);
-        }
-
-        main section {
-            padding: 28px 0 8px;
-        }
-
-        .section-title-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: end;
-            gap: 20px;
-            margin-bottom: 18px;
-        }
-
-        .section-kicker {
+        .toc-list a:hover, .toc-list a.active {
             color: var(--accent);
-            font-family: "IBM Plex Mono", monospace;
-            font-size: 12px;
-            letter-spacing: 0.12em;
+            border-left-color: var(--accent);
+            background: var(--accent-light);
+            border-radius: 4px 0 0 4px;
+        }
+        .toc-list a.active { font-weight: 600; }
+
+        .toc-indent { padding-left: 24px !important; }
+
+        .sidebar-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.6;
+        }
+        .sidebar-footer a { color: var(--text-muted); }
+        .sidebar-footer a:hover { color: var(--accent); }
+
+        /* === MAIN CONTENT === */
+        .main-content {
+            flex: 1;
+            max-width: var(--content-width);
+            padding: 0 48px 80px;
+        }
+
+        /* === HERO === */
+        .hero {
+            padding: 72px 0 56px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 48px;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: var(--accent-light);
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 10px;
+            letter-spacing: 0.08em;
+            margin-bottom: 20px;
         }
 
-        h2 {
-            margin: 0;
-            font-family: "Newsreader", serif;
-            font-size: clamp(2rem, 4vw, 3rem);
-            line-height: 1.02;
-            letter-spacing: -0.04em;
+        .hero h1 {
+            font-family: var(--font-serif);
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            line-height: 1.12;
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            font-weight: 700;
         }
 
-        .section-desc {
-            max-width: 800px;
-            color: var(--text-soft);
-            margin: 10px 0 0;
-            font-size: 1rem;
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 640px;
+            line-height: 1.65;
+            margin-bottom: 24px;
         }
 
-        .grid {
-            display: grid;
-            gap: 18px;
-        }
-
-        .grid.two {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .grid.three {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .card {
-            background: var(--paper);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 22px;
-            box-shadow: var(--shadow);
-        }
-
-        .card h3 {
-            margin: 0 0 10px;
-            font-size: 1.08rem;
-        }
-
-        .card p {
-            margin: 0;
-            color: var(--text-soft);
-            font-size: 0.97rem;
-        }
-
-        .label-row {
+        .hero-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 14px;
+            gap: 16px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
         }
+
+        .hero-meta span { display: flex; align-items: center; gap: 5px; }
+
+        .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 
         .tag {
             display: inline-flex;
             align-items: center;
             border-radius: 999px;
-            padding: 6px 10px;
-            background: var(--panel-strong);
-            color: var(--text-soft);
-            font-size: 12px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
             font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .tag-core { background: var(--success-light); color: var(--success); }
+        .tag-caution { background: var(--warm-light); color: var(--warm); }
+        .tag-danger { background: var(--danger-light); color: var(--danger); }
+        .tag-accent { background: var(--accent-light); color: var(--accent); }
+
+        /* === SECTIONS === */
+        .blog-section {
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border);
         }
 
-        .tag.success {
-            background: var(--success-soft);
-            color: var(--success);
+        .section-kicker {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
         }
 
-        .tag.warn {
-            background: var(--warm-soft);
-            color: var(--warm);
-        }
-
-        .tag.danger {
-            background: var(--danger-soft);
-            color: var(--danger);
-        }
-
-        .callout {
-            border-radius: var(--radius);
-            padding: 20px 22px;
-            border: 1px solid var(--line);
-            background: var(--paper);
-            box-shadow: var(--shadow);
-        }
-
-        .callout strong {
+        h2 {
+            font-family: var(--font-serif);
+            font-size: clamp(1.55rem, 3.5vw, 2.3rem);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+            font-weight: 700;
             color: var(--text);
+            scroll-margin-top: 80px;
         }
 
-        .callout.scope {
-            background: linear-gradient(180deg, rgba(15, 118, 110, 0.06), rgba(255, 255, 255, 0.72));
-            border-color: rgba(15, 118, 110, 0.18);
+        h3 {
+            font-family: var(--font-serif);
+            font-size: 1.2rem;
+            line-height: 1.3;
+            margin: 28px 0 10px;
+            font-weight: 600;
+            color: var(--text);
+            scroll-margin-top: 80px;
         }
 
-        .callout.caution {
-            background: linear-gradient(180deg, rgba(180, 83, 9, 0.08), rgba(255, 255, 255, 0.72));
-            border-color: rgba(180, 83, 9, 0.18);
+        p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            max-width: 68ch;
         }
 
-        .callout.danger {
-            background: linear-gradient(180deg, rgba(180, 35, 24, 0.07), rgba(255, 255, 255, 0.72));
-            border-color: rgba(180, 35, 24, 0.18);
+        .blog-section > p.subtitle {
+            font-size: 1.02rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            max-width: 640px;
         }
 
-        .math-panel,
-        .code-panel,
-        .table-wrap,
-        .image-panel {
-            background: var(--paper);
-            border: 1px solid var(--line);
+        /* === BLOCKQUOTES === */
+        blockquote {
+            margin: 24px 0;
+            padding: 20px 24px;
+            border-left: 3px solid var(--accent);
+            background: var(--accent-light);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-style: italic;
+            color: var(--text);
+            font-family: var(--font-serif);
+            font-size: 1.02rem;
+            line-height: 1.65;
+        }
+
+        blockquote blockquote {
+            border-left-color: var(--warm);
+            background: var(--warm-light);
+            margin-left: 0;
+        }
+
+        /* === CALLOUTS === */
+        .callout {
+            margin: 24px 0;
+            padding: 20px 24px;
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            background: var(--paper);
+            box-shadow: var(--shadow-sm);
         }
+        .callout strong { color: var(--text); }
+        .callout-info { border-left: 3px solid var(--accent); }
+        .callout-warn { border-left: 3px solid var(--warm); background: var(--warm-light); }
+        .callout-danger { border-left: 3px solid var(--danger); background: var(--danger-light); }
+        .callout-success { border-left: 3px solid var(--success); background: var(--success-light); }
 
-        .math-panel,
-        .image-panel {
+        /* === MATH PANELS === */
+        .math-block {
+            margin: 24px 0;
             padding: 24px;
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow-x: auto;
+            box-shadow: var(--shadow-sm);
         }
 
-        .math-caption,
-        .image-caption {
-            font-size: 14px;
+        .math-block .math-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 600;
             color: var(--text-muted);
-            margin-top: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
         }
 
-        .code-panel {
+        /* === CODE BLOCKS === */
+        .code-block {
+            margin: 24px 0;
+            border-radius: var(--radius);
             overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
 
-        .code-head {
+        .code-block .code-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--line);
-            background: rgba(24, 32, 34, 0.03);
+            padding: 12px 18px;
+            background: rgba(26, 32, 34, 0.03);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
         }
 
-        .code-head strong {
-            font-size: 14px;
-        }
-
-        .code-head span {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        pre {
-            margin: 0;
-            padding: 18px;
-            overflow-x: auto;
-            font-size: 13px;
-            line-height: 1.7;
-            color: #133234;
-            background: rgba(255, 255, 255, 0.78);
-        }
-
-        .table-wrap {
-            overflow: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 760px;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--line);
-            vertical-align: top;
-        }
-
-        th {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            font-weight: 700;
-            background: rgba(24, 32, 34, 0.03);
-        }
-
-        td {
-            font-size: 14px;
-            color: var(--text-soft);
-        }
-
-        td strong {
+        .code-block .code-header strong {
+            font-family: var(--font-mono);
             color: var(--text);
         }
 
-        .repo-columns {
+        .code-block .code-header span {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            font-size: 0.84rem;
+            line-height: 1.7;
+            color: #1a2022;
+            background: var(--paper);
+            font-family: var(--font-mono);
+            tab-size: 4;
+        }
+
+        /* === METRICS GRID === */
+        .metrics-grid {
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin: 28px 0;
         }
 
-        details.file-card {
-            border: 1px solid var(--line);
+        .metric {
+            background: var(--paper);
+            border: 1px solid var(--border);
             border-radius: var(--radius-sm);
-            background: rgba(255, 255, 255, 0.72);
-            padding: 0;
+            padding: 18px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
         }
 
-        details.file-card + details.file-card {
-            margin-top: 12px;
+        .metric .metric-value {
+            font-family: var(--font-mono);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
         }
 
-        details.file-card[open] {
-            background: rgba(255, 255, 255, 0.92);
+        .metric .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 600;
         }
+
+        .metric .metric-note {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            line-height: 1.45;
+        }
+
+        /* === COMPARISON TABLE === */
+        .table-wrap {
+            margin: 24px 0;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+            font-size: 0.9rem;
+        }
+
+        .table-wrap th {
+            text-align: left;
+            padding: 14px 16px;
+            background: rgba(26, 32, 34, 0.03);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-wrap td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .table-wrap td strong { color: var(--text); }
+        .table-wrap tr:last-child td { border-bottom: none; }
+
+        /* === RESULTS CARD === */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .result-card {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .result-card .result-icon {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+        }
+
+        .result-card h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .result-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* === FILE EXPLORER === */
+        details.file-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--paper);
+            margin-bottom: 8px;
+        }
+
+        details.file-card[open] { background: var(--paper-hover); }
+
+        details.file-card + details.file-card { margin-top: 6px; }
 
         summary {
             list-style: none;
             cursor: pointer;
-            padding: 16px 18px;
+            padding: 14px 18px;
             display: flex;
             justify-content: space-between;
-            align-items: start;
+            align-items: center;
             gap: 16px;
         }
 
-        summary::-webkit-details-marker {
-            display: none;
+        summary::-webkit-details-marker { display: none; }
+
+        .file-name {
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
         }
 
-        .summary-main strong {
-            display: block;
-            font-size: 15px;
-            margin-bottom: 6px;
-        }
-
-        .summary-main span {
-            display: block;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .summary-kind {
-            font-size: 12px;
-            color: var(--accent);
+        .file-kind {
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
+            padding: 2px 8px;
+            border-radius: 999px;
             white-space: nowrap;
         }
 
-        .file-body {
-            padding: 0 18px 18px;
-            color: var(--text-soft);
-            font-size: 14px;
+        .file-kind.core { background: var(--success-light); color: var(--success); }
+        .file-kind.demo { background: var(--accent-light); color: var(--accent); }
+        .file-kind.explore { background: var(--warm-light); color: var(--warm); }
+        .file-kind.vis { background: var(--danger-light); color: var(--danger); }
+
+        .file-desc {
+            padding: 0 18px 16px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
         }
 
-        .stack {
-            display: grid;
-            gap: 18px;
+        /* === FOOTER === */
+        .post-footer {
+            padding: 48px 0 20px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
         }
 
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 14px;
-            margin-top: 18px;
-        }
-
-        .metric {
-            background: rgba(255, 255, 255, 0.76);
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            padding: 16px;
-        }
-
-        .metric-value {
-            font-size: 1.6rem;
-            font-family: "IBM Plex Mono", monospace;
-            color: var(--text);
-            margin-bottom: 6px;
-        }
-
-        .metric-label {
-            font-size: 12px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .metric-note {
-            font-size: 13px;
-            color: var(--text-soft);
-        }
-
-        .image-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-        }
-
-        footer {
-            padding: 56px 0 72px;
-        }
-
-        .footer-card {
-            background: var(--paper);
-            border: 1px solid var(--line);
-            border-radius: 28px;
-            padding: 24px;
-            box-shadow: var(--shadow);
-            display: flex;
-            justify-content: space-between;
-            gap: 24px;
-            align-items: center;
-        }
-
-        .footer-copy {
-            color: var(--text-soft);
-            font-size: 14px;
-        }
-
-        .footer-links {
+        .post-footer .footer-links {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
         }
 
-        @media (max-width: 1080px) {
-            .hero-grid,
-            .repo-columns,
-            .grid.three,
-            .grid.two,
-            .image-grid,
-            .metric-grid {
-                grid-template-columns: 1fr;
-            }
+        .post-footer .footer-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--paper);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.15s;
         }
 
-        @media (max-width: 760px) {
-            .topbar-inner,
-            .footer-card {
-                flex-direction: column;
-                align-items: stretch;
-            }
+        .post-footer .footer-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            text-decoration: none;
+        }
 
-            .nav {
-                justify-content: flex-start;
-            }
+        .post-footer .footer-note {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 20px;
+            line-height: 1.6;
+        }
 
-            .hero {
-                padding-top: 44px;
-            }
+        /* === RESPONSIVE === */
+        @media (max-width: 1080px) {
+            .sidebar { display: none; }
+            .main-content { padding: 0 28px 60px; }
+        }
 
-            .hero-card,
-            .card,
-            .math-panel,
-            .image-panel,
-            .callout {
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 2.5rem;
-            }
+        @media (max-width: 640px) {
+            .hero { padding: 48px 0 32px; }
+            .main-content { padding: 0 18px 40px; }
+            h2 { font-size: 1.4rem; }
+            .metrics-grid { grid-template-columns: 1fr 1fr; }
+            .results-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <header class="topbar">
-        <div class="shell topbar-inner">
-            <div class="brand">
-                <div class="brand-mark">CRT</div>
-                <div class="brand-copy">
-                    <div class="brand-name">Geometric IF-ELSE</div>
-                    <div class="brand-sub">Topology-driven exact repair for structured discrete systems</div>
-                </div>
-            </div>
-            <nav class="nav">
-                <a href="#scope">Scope</a>
-                <a href="#math">Math</a>
-                <a href="#benchmarks">Benchmarks</a>
-                <a href="#examples">Examples</a>
-                <a href="#codebase">Codebase</a>
-                <a href="#artifacts">Artifacts</a>
-                <a href="#whats-new">What's new?</a>
-            </nav>
+
+<div class="site-wrapper">
+
+<!-- ========== SIDEBAR (TABLE OF CONTENTS) ========== -->
+<aside class="sidebar">
+    <div class="sidebar-title">Contents</div>
+    <div class="sidebar-subtitle">
+        Architecture · Math · Benchmarks · Codebase
+    </div>
+<ul class="toc-list">
+          <li><a href="#overview" class="active">Overview</a></li>
+          <li><a href="#problem">The Problem with If/Else</a></li>
+          <li><a href="#theory">The Theory
+              <ul class="toc-list">
+                  <li><a href="#crt-encoding" class="toc-indent">CRT Encoding</a></li>
+                  <li><a href="#cosine-loss" class="toc-indent">Cosine Wave Loss</a></li>
+                  <li><a href="#garner" class="toc-indent">Garner's Algorithm</a></li>
+              </ul>
+          </li>
+          <li><a href="#architecture">Three-Layer Architecture</a></li>
+          <li><a href="#mechanism">The Exact Mechanism</a></li>
+          <li><a href="#experiments">Experiments
+              <ul class="toc-list">
+                  <li><a href="#math-core" class="toc-indent">Math Core</a></li>
+                  <li><a href="#assignment" class="toc-indent">Constraint Assignment</a></li>
+                  <li><a href="#csp" class="toc-indent">CSP & Search</a></li>
+                  <li><a href="#sat" class="toc-indent">SAT Exploration</a></li>
+                  <li><a href="#advanced" class="toc-indent">Advanced / Multi-Domain</a></li>
+                  <li><a href="#cpu-scheduling" class="toc-indent">CPU Scheduling Case Study</a></li>
+                  <li><a href="#analogy" class="toc-indent">Analogy Extensions</a></li>
+              </ul>
+          </li>
+          <li><a href="#benchmarks">Benchmarks</a></li>
+          <li><a href="#verdict">Verdict</a></li>
+          <li><a href="#codebase">Codebase Map</a></li>
+          <li><a href="#links">Links</a></li>
+      </ul>
+         </li>
+         <li><a href="#architecture">Three-Layer Architecture</a></li>
+         <li><a href="#mechanism">The Exact Mechanism</a></li>
+         <li><a href="#experiments">Experiments</a>
+             <ul class="toc-list">
+                 <li><a href="#math-core" class="toc-indent">Math Core</a></li>
+                 <li><a href="#assignment" class="toc-indent">Constraint Assignment</a></li>
+                 <li><a href="#csp" class="toc-indent">CSP & Search</a></li>
+                 <li><a href="#sat" class="toc-indent">SAT Exploration</a></li>
+                 <li><a href="#advanced" class="toc-indent">Advanced / Multi-Domain</a></li>
+                 <li><a href="#cpu-scheduling" class="toc-indent">CPU Scheduling Case Study</a></li>
+                 <li><a href="#analogy" class="toc-indent">Analogy Extensions</a></li>
+             </ul>
+         </li>
+         <li><a href="#benchmarks">Benchmarks</a></li>
+         <li><a href="#verdict">Verdict</a></li>
+         <li><a href="#codebase">Codebase Map</a></li>
+         <li><a href="#links">Links</a></li>
+     </ul>
+                 <li><a href="#csp" class="toc-indent">CSP & Search</a></li>
+                 <li><a href="#sat" class="toc-indent">SAT Exploration</a></li>
+                 <li><a href="#advanced" class="toc-indent">Advanced / Multi-Domain</a></li>
+                 <li><a href="#cpu-scheduling" class="toc-indent">CPU Scheduling Case Study</a></li>
+                 <li><a href="#analogy" class="toc-indent">Analogy Extensions</a></li>
+             </ul>
+        </li>
+        <li><a href="#benchmarks">Benchmarks</a></li>
+        <li><a href="#verdict">Verdict</a></li>
+        <li><a href="#codebase">Codebase Map</a></li>
+        <li><a href="#links">Links</a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <strong>Geometric IF-ELSE</strong><br>
+        Topology-driven exact repair for structured discrete systems<br><br>
+        <a href="README.md">README</a> ·
+        <a href="MATH.md">Math Audit</a> ·
+        <a href="MONEY.md">Commercial Notes</a> ·
+        <a href="CRITIC.md">Critique Response</a>
+    </div>
+</aside>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="main-content">
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="hero-eyebrow">Research Codebase · 2024–2025</div>
+    <h1>Topology-driven exact repair for structured discrete systems</h1>
+    <p class="hero-subtitle">
+        A three-layer architecture for constraint problems where you commit some variables
+        and repair the rest without recomputing from scratch — using Chinese Remainder Theorem
+        residues as an exact state-update primitive.
+    </p>
+    <div class="hero-meta">
+        <span>📐 Math Rating: <strong>61 / 100</strong></span>
+        <span>🔬 Verdict: <strong>Good direction, weak breakthrough claim</strong></span>
+        <span>🕐 ~12 min read</span>
+    </div>
+    <div class="hero-tags">
+        <span class="tag tag-core">CRT Arithmetic</span>
+        <span class="tag tag-core">Exact Repair</span>
+        <span class="tag tag-accent">Lock-and-Restore</span>
+        <span class="tag tag-caution">Specialized Primitive</span>
+        <span class="tag tag-danger">Not a Universal Solver</span>
+    </div>
+</section>
+
+<!-- ===== 1. THE PROBLEM ===== -->
+<section class="blog-section" id="problem">
+    <h2>The Problem with If/Else</h2>
+    <p>
+        Standard neural networks struggle with <code>if/else</code> logic because the
+        Heaviside step function has zero gradients everywhere except at the boundary — where
+        the gradient is infinite. Gradient descent is a blindfolded hiker standing on a flat
+        plane, unable to feel which direction leads downhill.
+    </p>
+
+    <div class="math-block">
+        <div class="math-label">Heaviside step function</div>
+        $$H(x) = \begin{cases} 0 & \text{if } x < 0 \\ 1 & \text{if } x \ge 0 \end{cases}$$
+        <p style="margin:8px 0 0;font-size:0.85rem;color:var(--text-muted);">
+            Its derivative is the Dirac delta — zero everywhere, infinite at zero. A neural
+            network on the flat part has no signal at all.
+        </p>
+    </div>
+
+    <p>
+        The industry works around this with sigmoid gates, Gumbel-Softmax distributions, and
+        straight-through estimators. But as the research shows, these are "foam padding over
+        a jagged staircase" — fake smoothness imposed from the outside rather than discovered.
+    </p>
+
+    <blockquote>
+        What if conditional logic has an inherent continuous geometry — and we just haven't
+        learned to see it yet?
+    </blockquote>
+</section>
+
+<!-- ===== 2. THE THEORY ===== -->
+<section class="blog-section" id="theory">
+    <h2>The Core Insight</h2>
+    <p>
+        Instead of fighting discrete logic with continuous approximations, this project flips
+        the question: <strong>What if you encode Boolean states as residues of prime moduli
+        and let a single integer hold the entire truth table?</strong>
+    </p>
+</section>
+
+<section class="blog-section" id="crt-encoding">
+    <div class="section-kicker">Chinese Remainder Theorem</div>
+    <h3>Encoding logic in prime residues</h3>
+    <p>
+        Assign each Boolean condition a distinct prime $p_i$. For pairwise coprime primes,
+        there exists a unique <strong>Master Coordinate</strong> $X$ satisfying all residues
+        simultaneously:
+    </p>
+
+    <div class="math-block">
+        $$X \equiv a_1 \pmod{p_1}, \quad X \equiv a_2 \pmod{p_2}, \quad X \equiv a_3 \pmod{p_3}$$
+        <p style="margin:8px 0 0;font-size:0.85rem;color:var(--text-muted);">
+            A single integer encodes an entire truth table. Example: target [1, 0, 1] with
+            primes [2, 3, 5] → X = 21, because 21 mod 2 = 1, 21 mod 3 = 0, 21 mod 5 = 1.
+        </p>
+    </div>
+
+    <p>
+        This bijection between integers and residue vectors is the foundation of everything
+        that follows. One number, one manifold, many logical states.
+    </p>
+</section>
+
+<section class="blog-section" id="cosine-loss">
+    <div class="section-kicker">Differentiable Surrogate</div>
+    <h3>The cosine wave loss</h3>
+    <p>
+        Taking a modulo gives a sawtooth wave — discontinuous and gradient-killing. The fix:
+        replace it with a smooth cosine wave whose minima align exactly with the target residues:
+    </p>
+
+    <div class="math-block">
+        <div class="math-label">Smooth residue loss</div>
+        $$L_i(z) = 1 - \cos\!\left(\frac{2\pi}{p_i}(z - a_i)\right)$$
+        $$L(z) = \sum_{i=1}^n L_i(z)$$
+        <p style="margin:8px 0 0;font-size:0.85rem;color:var(--text-muted);">
+            The gradient is never zero unless $z$ sits exactly at the valley bottom. Multiple
+            prime waves superimpose into a complex landscape of ridges and basins.
+        </p>
+    </div>
+
+    <blockquote>
+        Each prime creates its own frequency. Superimpose them and you get moiré interference
+        patterns — chaotic terrain where gradient descent gets permanently trapped. Two out of
+        three constraints satisfied looks like a local minimum. That's the "Moiré Trap."
+    </blockquote>
+</section>
+
+<section class="blog-section" id="garner">
+    <div class="section-kicker">The Escape Mechanism · 1958</div>
+    <h3>Garner's Algorithm as a "Teleporter"</h3>
+    <p>
+        When gradient descent gets stuck, you need a way to jump out of local minima without
+        disturbing already-solved constraints. The answer: <strong>Garner's Algorithm</strong>, a
+        1958 method for reconstructing a number from its CRT residues, turns out to be exactly
+        the right tool.
+    </p>
+
+    <div class="math-block">
+        <div class="math-label">Garner's mixed-radix reconstruction</div>
+        $$X = v_1 + v_2\,p_1 + v_3\,p_1p_2 + \cdots$$
+        <p style="margin:8px 0 0;font-size:0.85rem;color:var(--text-muted);">
+            Each coefficient $v_i$ is computed via modular inverses. The calculation is fully
+            differentiable — it's just multiplication and addition. This is the "safe corridor":
+            an exact algebraic path from any starting point to the target coordinate, preserving
+            every already-solved residue.
+        </p>
+    </div>
+</section>
+
+<!-- ===== 3. ARCHITECTURE ===== -->
+<section class="blog-section" id="architecture">
+    <div class="section-kicker">Design</div>
+    <h2>Three-Layer Architecture</h2>
+    <p>
+        The project separates concerns into three clean layers:
+    </p>
+
+    <div class="metrics-grid">
+        <div class="metric">
+            <div class="metric-label">Topology</div>
+            <div style="font-family:var(--font-mono);font-size:0.88rem;font-weight:600;color:var(--accent);margin-bottom:4px;">ConstraintTopology</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">Declarative hypergraph — groups, variables, and overlap positions. Says <em>what the structure is</em>.</div>
         </div>
-    </header>
+        <div class="metric">
+            <div class="metric-label">Arithmetic</div>
+            <div style="font-family:var(--font-mono);font-size:0.88rem;font-weight:600;color:var(--warm);margin-bottom:4px;">LocalCRTGroup</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">CRT residues + exact transition + O(1) rollback. Says <em>how the arithmetic works</em>.</div>
+        </div>
+        <div class="metric">
+            <div class="metric-label">Search</div>
+            <div style="font-family:var(--font-mono);font-size:0.88rem;font-weight:600;color:var(--success);margin-bottom:4px;">RepairEngine</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">Generic backtracking + lock-and-repair. Says <em>how search and repair operate</em>.</div>
+        </div>
+    </div>
 
-    <div class="shell">
-        <section class="hero">
-            <div class="hero-card">
-                <div class="hero-grid">
-                    <div>
-                        <div class="eyebrow">Research Codebase</div>
-                        <h1>Topology-driven exact repair for structured discrete systems.</h1>
-                        <p class="hero-lead">
-                            A three-layer architecture for constraint problems where you need to commit some variables and repair the rest without recomputing from scratch:
-                        </p>
-                        <ul style="color: var(--text-soft); line-height: 1.8; padding-left: 20px; margin: 0 0 20px;">
-                            <li><strong>Constraint hypergraph</strong> — declare groups (rows, shifts, lanes, hosts) and variables with overlap positions. Groups enforce all-different or custom constraints.</li>
-                            <li><strong>CRT arithmetic kernel</strong> — each group gets a <code>LocalCRTGroup</code> that encodes state as modular residues. <code>transition(pos, val)</code> jumps to a new value while exactly preserving every previously-committed residue. O(1) checkpoint/rollback.</li>
-                            <li><strong>Repair engine</strong> — generic backtracking search on top. Lock a subset of variables, repair the rest. The separation of declarative topology from arithmetic witness from search means you describe the structure once and get solve + repair for free.</li>
-                        </ul>
-                        <div class="callout scope" style="margin: 22px 0 0;">
-                            <strong>Why care?</strong> Because a lot of practical systems — shift scheduling with sick calls, cloud VM rebalancing after host failure, airline crew recovery, graph recoloring, frequency reassignment — share the same shape: you have a working assignment, something small changes externally, and you need to <strong>patch around the commitment</strong> without tearing down everything and starting over. The CRT primitive gives you an exact arithmetic guarantee: you can change one variable while keeping specific others locked. Traditional backtracking can't give you that. This repo explores where that guarantee is useful and where it falls short.
-                        </div>
-                        <div class="button-row">
-                            <a class="btn btn-primary" href="README.md">Read README</a>
-                            <a class="btn btn-secondary" href="MATH.md">Read MATH.md</a>
-                            <a class="btn btn-secondary" href="MONEY.md">Read MONEY.md</a>
-                        </div>
-                        <div class="hero-summary">
-                            <div class="pill">Core: topology-driven exact repair over overlapping constraint groups</div>
-                            <div class="pill">Best fit: lock-and-repair for small-domain assignment problems</div>
-                            <div class="pill">Verdict: useful specialized primitive, not a general solver</div>
-                        </div>
-                    </div>
+    <blockquote>
+        The most important architectural decision: <code>z</code> (the CRT coordinate) is not the
+        operational state. It is an <strong>invariant certificate</strong> — reconstructed lazily
+        to prove consistency. The solver mutates residues and locks; <code>z</code> is a
+        checkpoint, not a steering wheel.
+    </blockquote>
+</section>
 
-                    <div class="hero-side">
-                        <div class="side-card">
-                            <div class="side-kicker">Architecture in Three Layers</div>
-                            <div style="display: grid; gap: 10px; margin-bottom: 10px;">
-                                <div style="background: var(--accent-soft); border-radius: 10px; padding: 10px 12px;">
-                                    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px;">ConstraintTopology</div>
-                                    <div style="font-size: 13px; color: var(--text-soft);">Declarative hypergraph: groups + variables + overlap positions</div>
-                                </div>
-                                <div style="background: var(--warm-soft); border-radius: 10px; padding: 10px 12px;">
-                                    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--warm); margin-bottom: 4px;">LocalCRTGroup</div>
-                                    <div style="font-size: 13px; color: var(--text-soft);">Arithmetic kernel: CRT residues + exact transition + O(1) rollback</div>
-                                </div>
-                                <div style="background: var(--success-soft); border-radius: 10px; padding: 10px 12px;">
-                                    <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--success); margin-bottom: 4px;">RepairEngine</div>
-                                    <div style="font-size: 13px; color: var(--text-soft);">Generic solve + repair around locked commitments</div>
-                                </div>
-                            </div>
-                            <div class="score-note">Describe structure once, get solve + repair for free. <a href="MATH.md">Math audit</a> rates the arithmetic core at 68/100.</div>
-                        </div>
-                        <div class="side-card">
-                            <div class="side-kicker">Fit Profile</div>
-                            <div class="score-note">
-                                <strong>Best for:</strong> small-domain constraint problems (2-20 values per variable) where you need exact local modification of committed solutions — lock-and-repair.<br><br>
-                                <strong>Not for:</strong> large-domain optimization, continuous problems, or competing with CP-SAT on general allocation (benchmarks show 10-1000x gap on inventory).
-                            </div>
-                        </div>
-                        <div class="side-card">
-                            <div class="side-kicker">Repo Surface</div>
-                            <div class="score-note">
-                                16+ source examples, 2 benchmark harnesses vs OR-Tools CP-SAT, math audit, commercialization notes, SAT/UNSAT visual artifacts. The topology abstraction (<code>constraint_topology.py</code> + <code>repair_engine.py</code> + <code>local_crt_repair.py</code>) is the distilled core — everything else is either a demo on top or exploratory framing.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+<!-- ===== 4. THE MECHANISM ===== -->
+<section class="blog-section" id="mechanism">
+    <div class="section-kicker">Core Primitive</div>
+    <h2>The Incremental CRT Jump</h2>
+    <p>
+        The fundamental operation is an exact state transition that changes one variable's
+        value while preserving all locked residues:
+    </p>
 
-        <main>
-            <section id="scope">
-                <div class="section-title-row">
-                    <div>
-                        <div class="section-kicker">Scope</div>
-                        <h2>How to read this repository.</h2>
-                        <p class="section-desc">
-                            The page below is meant to read more like a technical essay than a pitch deck. It tries to separate the stable arithmetic ideas from the more speculative framing, while still keeping the project’s original curiosity intact.
-                        </p>
-                    </div>
-                </div>
+    <div class="math-block">
+        <div class="math-label">The safe-corridor jump</div>
+        $$z' = z + kM, \qquad M = \prod_{p \in S} p$$
+        $$k \equiv (c - z) \cdot M^{-1} \pmod{p_t}$$
+        <p style="margin:8px 0 0;font-size:0.85rem;color:var(--text-muted);">
+            Set variable <code>t</code> to value <code>c</code>. Because <code>M</code> is divisible by every
+            locked modulus, <code>z mod p</code> is unchanged for all locked primes. This is an
+            <strong>exact</strong> arithmetic operation — no approximation, no tearing down prior
+            commitments.
+        </p>
+    </div>
 
-                <div class="grid three">
-                    <div class="card">
-                        <h3>The sturdy part</h3>
-                        <p>The cleanest part of the project is the arithmetic primitive: encode choices as residues inside local constraint groups (rows, columns, boxes, lanes, etc.), then use exact incremental CRT jumps to set new values while preserving every already-solved residue in that group exactly. No global modulus explosion. No tearing down solved commitments.</p>
-                        <div class="label-row">
-                            <span class="tag success">Exact arithmetic</span>
-                            <span class="tag success">Local jumps only</span>
-                            <span class="tag success">Lock-and-repair</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>The exploratory part</h3>
-                        <p>The cosine-wave losses, SAT landscapes, and continuous-geometry framing are better described as exact smooth potentials or lifted encodings. What is heuristic is usually the optimization strategy, not the mathematical construction itself.</p>
-                        <div class="label-row">
-                            <span class="tag warn">Exact potentials, heuristic optimization</span>
-                            <span class="tag warn">Metaphorical framing</span>
-                            <span class="tag warn">Mixed rigor</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>The useful framing</h3>
-                        <p>The most productive way to think about the project is as a specialized search-and-repair idea for structured discrete problems. It is much more convincing in that role than as a sweeping claim about optimization in general.</p>
-                        <div class="label-row">
-                            <span class="tag warn">Specialized primitive</span>
-                            <span class="tag warn">Not a universal solver</span>
-                        </div>
-                    </div>
-                </div>
+    <div class="callout callout-success">
+        <strong>Why this matters:</strong> In shift scheduling, if nurse A is already assigned
+        to Monday and nurse B to Tuesday, you can reassign nurse C to Wednesday via one CRT
+        jump without re-optimizing the entire roster. The locked residues stay locked.
+    </div>
 
-                <div class="callout scope" style="margin-top:18px;">
-                    <strong>Executive summary:</strong> the repository is easiest to appreciate if you treat it as an experiment in using modular arithmetic structure as an exact state-update primitive for constrained discrete systems. The most interesting practical idea here is not "prime topology replaces optimization," but "CRT-preserving updates may be useful for commitment-preserving repair."
-                </div>
-                <div class="callout scope" style="margin-top:18px;">
-                    <strong>The true core abstraction:</strong> a three-layer architecture — <code>ConstraintTopology</code> (declarative hypergraph), <code>LocalCRTGroup</code> (arithmetic witness with exact residue-preserving transitions), <code>RepairEngine</code> (generic backtracking + lock-and-repair). Encode discrete state as residues of CRT coordinates. Update a variable by jumping its residue exactly while preserving all committed residues. The layers separate <em>what the structure is</em> from <em>how the arithmetic works</em> from <em>how search and repair operate</em>. Everything else in the repo (cosine losses, manifold language, SAT landscapes) is either a demo built on top of these layers or metaphorical framing stretched over them.
-                </div>
-            </section>
-
-            <section id="math">
-                <div class="section-title-row">
-                    <div>
-                        <div class="section-kicker">Math Core</div>
-                        <h2>The exact mechanism underneath the strongest demos.</h2>
-                        <p class="section-desc">
-                            Most of the repository reduces to two layers: an <strong>operational layer</strong> of residues and local validity checks, and an <strong>arithmetic witness layer</strong> of CRT coordinates that certify exact commitment preservation. The core mechanism is the incremental CRT jump — an exact state transition operator that preserves all already-solved residues.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="callout scope" style="margin-bottom:18px;">
-                    <strong>Architecture note:</strong> <code>z</code> is not the operational state. It is an <strong>invariant certificate</strong> — a CRT coordinate that proves algebraic commitment preservation. The operational state lives in residues, locks, and local validity tables. This separation is what makes the method architecturally clean: representation and solver state are no longer conflated.
-                </div>
-
-                <div class="math-panel">
-                        <h3>Operational layer: residues and locks</h3>
-                        <div>
-                            $$r_i = \text{current value of variable } i \text{ (operational state)}$$
-                            $$S = \{i : \text{variable } i \text{ is locked / committed}\}$$
-                        </div>
-                        <p class="math-caption">
-                            The operational layer tracks which residues are currently set, which variables are locked, and which assignments are locally valid. This is the state the solver actually reads and mutates.
-                        </p>
-                    </div>
-
-                    <div class="math-panel">
-                        <h3>Witness layer: CRT coordinate z</h3>
-                        <div>
-                            $$z \pmod{P} \longleftrightarrow (r_1,\dots,r_n), \qquad P=\prod_i p_i$$
-                        </div>
-                        <p class="math-caption">
-                            <code>z</code> is the arithmetic witness — a CRT coordinate that proves all committed residues are algebraically consistent. It is <em>reconstructed</em> from the operational state, not the source of truth. Lazy recomputation is the right strategy: reconstruct only at checkpoints, during debugging, or when a witness is needed.
-                        </p>
-                    </div>
-
-                    <div class="math-panel">
-                        <h3>Cosine residue loss</h3>
-                        <div>
-                            $$L_i(z)=1-\cos\left(\frac{2\pi}{p_i}(z-a_i)\right)$$
-                            $$L(z)=\sum_i L_i(z)$$
-                            $$\frac{dL}{dz}=\sum_i \frac{2\pi}{p_i}\sin\left(\frac{2\pi}{p_i}(z-a_i)\right)$$
-                        </div>
-                        <p class="math-caption">
-                            Exact smooth objective for congruence satisfaction. Zero set = target residue classes. Heuristic enters only when using gradient descent to find minima — not in the construction itself.
-                        </p>
-                    </div>
-
-                    <div class="math-panel">
-                        <h3>Incremental CRT jump (state transition operator)</h3>
-                        <div>
-                            $$z' = z + kM, \qquad M=\prod_{p \in S} p$$
-                            $$k \equiv (c-z)M^{-1} \pmod{p_t}$$
-                        </div>
-                        <p class="math-caption">
-                            The core mechanism. Sets variable <code>t</code> to value <code>c</code> while preserving all locked residues in <code>S</code> exactly. This is an <em>exact state transition</em> — no approximation, no tearing down prior commitments. All exact-search demos use this directly.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="grid three" style="margin-top:18px;">
-                    <div class="card">
-                        <h3>Operational state</h3>
-                        <p>Residues, locks, local validity tables, mutation history stack. This is what the solver reads and mutates on every step.</p>
-                        <div class="label-row">
-                            <span class="tag success">Residues</span>
-                            <span class="tag success">Locks</span>
-                            <span class="tag success">Mutation stack</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>Arithmetic witness</h3>
-                        <p>CRT coordinate <code>z</code> — an invariant certificate proving algebraic commitment consistency. Reconstructed lazily, not eagerly recomputed.</p>
-                        <div class="label-row">
-                            <span class="tag warn">Lazy recompute</span>
-                            <span class="tag warn">Checkpoint reconstruction</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>Where heuristics enter</h3>
-                        <p>Heuristics enter through: optimization schedules, thresholding, ghost-residue semantics, search ordering, and eager vs lazy witness computation decisions.</p>
-                        <div class="label-row">
-                            <span class="tag warn">Optimization</span>
-                            <span class="tag warn">Search ordering</span>
-                            <span class="tag warn">Semantic extensions</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="code-panel" style="margin-top:18px;">
-                    <div class="code-head">
-                        <strong>Representative code: exact residue-preserving jump</strong>
-                        <span>Used in the strongest combinatorial demos</span>
-                    </div>
-                    <pre>def garners_jump(current_z, target_val, prime_idx, solved_primes):
+    <div class="code-block">
+        <div class="code-header">
+            <strong>garners_jump</strong>
+            <span>Exact residue-preserving transition · Core of all search solvers</span>
+        </div>
+        <pre>def garners_jump(current_z, target_val, prime_idx, solved_primes):
     p_target = PRIMES[prime_idx]
     M = 1
     for p in solved_primes:
@@ -939,485 +868,556 @@
     diff = (target_val - current_z) % p_target
     k = (diff * mod_inverse(M, p_target)) % p_target
     return k * M</pre>
-                </div>
-            </section>
-
-            <section id="benchmarks">
-                <div class="section-title-row">
-                    <div>
-                        <div class="section-kicker">Benchmarks</div>
-                        <h2>What the benchmarks taught us.</h2>
-                        <p class="section-desc">
-                            Two benchmark scripts now anchor the repo: an internal scaling harness and a direct comparison against OR-Tools CP-SAT on the same generated instances. They are less about “winning” and more about understanding where this style of search has leverage.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="callout caution">
-                    <strong>Reading note:</strong> the CRT search looks good on the planted-feasible timetabling instances tested here, and it remains interesting as a repair primitive. On the inventory benchmark, though, CP-SAT becomes the stronger general-purpose optimizer once size and objective quality matter.
-                </div>
-
-                <div class="metric-grid">
-                    <div class="metric">
-                        <div class="metric-label">Timetabling</div>
-                        <div class="metric-value">24</div>
-                        <div class="metric-note">Courses solved at 100% in the current synthetic benchmark bucket, with CRT search often faster than CP-SAT at the tested small-to-medium timetabling sizes.</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Inventory Base</div>
-                        <div class="metric-value">50</div>
-                        <div class="metric-note">Orders solved by both approaches, but CP-SAT finished in single-digit milliseconds while CRT search took over a second in the hardest tested bucket.</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Repair Mode</div>
-                        <div class="metric-value">25%</div>
-                        <div class="metric-note">Locked-order repair benchmark. CRT remains interesting here because preserving commitments is part of the story, even though CP-SAT is still stronger on the harder cases.</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Research Verdict</div>
-                        <div class="metric-value">Hybrid</div>
-                        <div class="metric-note">Promising as a structured primitive. Best understood as complementary to mature exact solvers, not a wholesale replacement.</div>
-                    </div>
-                </div>
-
-                <div class="table-wrap" style="margin-top:18px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Benchmark</th>
-                                <th>CRT Search</th>
-                                <th>CP-SAT</th>
-                                <th>Takeaway</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Timetabling</strong><br>12 courses, 4 options</td>
-                                <td>100% success, median 0.4 ms</td>
-                                <td>100% success, median 3.1 ms</td>
-                                <td>Nice result for the arithmetic search on clean planted-feasible structure.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Timetabling</strong><br>24 courses, 5 options</td>
-                                <td>100% success, median 2.1 ms</td>
-                                <td>100% success, median 4.1 ms</td>
-                                <td>Still a good showing at the tested synthetic size.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Inventory Base</strong><br>20 orders, 3 options</td>
-                                <td>100% success, 5.9 ms, objective 2851</td>
-                                <td>100% success, 2.4 ms, objective 2851</td>
-                                <td>CP-SAT is already the cleaner optimizer here.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Inventory Base</strong><br>35 orders, 4 options</td>
-                                <td>100% success, 1031.1 ms, objective 4946</td>
-                                <td>100% success, 4.3 ms, objective 4946</td>
-                                <td>This is where the standard exact solver pulls away.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Inventory Base</strong><br>50 orders, 4 options</td>
-                                <td>100% success, 1252.6 ms, objective 7403</td>
-                                <td>100% success, 4.7 ms, objective 7390</td>
-                                <td>CP-SAT is faster and slightly better on objective quality.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Inventory Repair</strong><br>50 orders, 25% locked</td>
-                                <td>80% success, 754.4 ms, objective 7496</td>
-                                <td>80% success, 3.4 ms, objective 7450</td>
-                                <td>The repair angle remains interesting, but the baseline solver is stronger overall.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="examples">
-                <div class="section-title-row">
-                    <div>
-                        <div class="section-kicker">Examples</div>
-                        <h2>Every example in the repository, grouped by what it seems to teach.</h2>
-                        <p class="section-desc">
-                            The repo contains a real mix: some files are mathematically central, some are strong assignment demos, some are visualizations, and some are better treated as analogy-driven extensions.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="grid three">
-                    <div class="card">
-                        <h3>Core differentiable logic</h3>
-                        <p><strong>prime_logic_nn.py</strong>, <strong>hard_prime_maze.py</strong>, and <strong>garner_navigation.py</strong> show the residue-loss story, the local-minimum problem, and the shift from wave wandering to exact coordinate targeting.</p>
-                        <div class="label-row">
-                            <span class="tag success">Core</span>
-                            <span class="tag">Gradient-based</span>
-                            <span class="tag">Residue loss</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>Constraint assignment demos</h3>
-                        <p><strong>traffic_controller.py</strong>, <strong>prime_timetable.py</strong>, <strong>prime_hypergraph_timetabling.py</strong>, and <strong>prime_inventory_allocation.py</strong> are the strongest product-facing examples.</p>
-                        <div class="label-row">
-                            <span class="tag success">Commercially relevant</span>
-                            <span class="tag">Exact search</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>Classic puzzle / CSP examples</h3>
-                        <p><strong>prime_n_queens.py</strong>, <strong>prime_mastermind.py</strong>, <strong>prime_pigeonhole.py</strong>, and <strong>prime_pigeonhole_strict.py</strong> show exact decoding, search, and UNSAT frustration.</p>
-                        <div class="label-row">
-                            <span class="tag">N-Queens</span>
-                            <span class="tag">Mastermind</span>
-                            <span class="tag warn">UNSAT energy</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>SAT exploration</h3>
-                        <p><strong>prime_sat_landscape.py</strong>, <strong>verify_sat.py</strong>, <strong>final_sat_verification.py</strong>, and <strong>extract_sat_solutions.py</strong> visualize and audit a SAT energy surface.</p>
-                        <div class="label-row">
-                            <span class="tag warn">Visualization</span>
-                            <span class="tag danger">Not exact SAT indicator</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>Analogy-heavy extensions</h3>
-                        <p><strong>prime_word_ladder.py</strong>, <strong>prime_alien_dict.py</strong>, and <strong>prime_regex_manifold.py</strong> stretch the framing beyond the cleanest arithmetic core.</p>
-                        <div class="label-row">
-                            <span class="tag warn">Mixed rigor</span>
-                            <span class="tag danger">Metaphor stretched</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>Multi-dimensional Sudoku</h3>
-                        <p><strong>crt_sudoku_hierarchical.py</strong> uses distributed CRT jumps across row, column, and box groups. Each group is its own local CRT microspace. This is the multi-dimensional version of the method — not one giant z, but a hierarchy of smaller exact jumps.</p>
-                        <div class="label-row">
-                            <span class="tag success">Exact backtracking</span>
-                            <span class="tag success">Local jumps</span>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3>Benchmark harnesses</h3>
-                        <p><strong>large_scale_benchmark.py</strong> measures internal scaling, while <strong>benchmark_vs_cpsat.py</strong> provides the proper external baseline against OR-Tools CP-SAT.</p>
-                        <div class="label-row">
-                            <span class="tag success">Required reading</span>
-                            <span class="tag">Reality check</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="codebase">
-                <div class="section-title-row">
-                    <div>
-                        <div class="section-kicker">Codebase</div>
-                        <h2>A guided map of the repository.</h2>
-                        <p class="section-desc">
-                            This section is here to make the repo legible. It names the major files, what they do, and how they fit into the larger story.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="repo-columns">
-                    <div class="card">
-                        <h3>Source files</h3>
-
-                        <details class="file-card" open>
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_logic_nn.py</strong>
-                                    <span>Minimal residue-loss network targeting the CRT coordinate for [1, 0, 1].</span>
-                                </div>
-                                <div class="summary-kind">Core</div>
-                            </summary>
-                            <div class="file-body">The cleanest “continuous prime-wave loss” demonstration in the repo.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/hard_prime_maze.py</strong>
-                                    <span>Higher-prime stress test showing local minima and optimization difficulty.</span>
-                                </div>
-                                <div class="summary-kind">Core</div>
-                            </summary>
-                            <div class="file-body">Useful for understanding why the cosine landscapes get hard quickly.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/garner_navigation.py</strong>
-                                    <span>Direct regression to an exact CRT target instead of wandering on the wave landscape.</span>
-                                </div>
-                                <div class="summary-kind">Core</div>
-                            </summary>
-                            <div class="file-body">Good illustration of the shift from “manifold loss” to exact arithmetic guidance.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/traffic_controller.py</strong>
-                                    <span>Safe traffic-state selection with hybrid loss and explicit admissibility rules.</span>
-                                </div>
-                                <div class="summary-kind">Demo</div>
-                            </summary>
-                            <div class="file-body">One of the cleaner product-adjacent examples in the repo.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_n_queens.py</strong>
-                                    <span>Backtracking search with CRT-preserving jumps between accepted queen placements.</span>
-                                </div>
-                                <div class="summary-kind">Strong</div>
-                            </summary>
-                            <div class="file-body">A real exact-search example, not just a metaphor.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_timetable.py</strong>
-                                    <span>Class scheduling by residues, conflict checks, and exact incremental jumps.</span>
-                                </div>
-                                <div class="summary-kind">Strong</div>
-                            </summary>
-                            <div class="file-body">Early assignment version before the larger hypergraph and inventory demos.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_hypergraph_timetabling.py</strong>
-                                    <span>NP-hard course placement demo built around exact jump updates.</span>
-                                </div>
-                                <div class="summary-kind">Commercial</div>
-                            </summary>
-                            <div class="file-body">One of the strongest “this could become a product primitive” files.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_inventory_allocation.py</strong>
-                                    <span>Flipkart-style order promising with stock, lane, cost, and locked-order repair.</span>
-                                </div>
-                                <div class="summary-kind">Commercial</div>
-                            </summary>
-                            <div class="file-body">The best non-scheduling commercial demo and the main benchmark battleground against CP-SAT.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_mastermind.py</strong>
-                                    <span>CRT-encoded Mastermind state space plus standard candidate elimination.</span>
-                                </div>
-                                <div class="summary-kind">Puzzle</div>
-                            </summary>
-                            <div class="file-body">The residue encoding is real; the solver logic is mostly classical.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_sat_landscape.py / verify_sat.py / final_sat_verification.py / extract_sat_solutions.py</strong>
-                                    <span>SAT landscape construction, brute-force truth checks, and ghost-residue analysis.</span>
-                                </div>
-                                <div class="summary-kind">Audit</div>
-                            </summary>
-                            <div class="file-body">Important because they expose where the SAT-energy story is interesting but not exact.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_pigeonhole.py / prime_pigeonhole_strict.py</strong>
-                                    <span>UNSAT frustration energy and a stricter discrete energy with binary penalties.</span>
-                                </div>
-                                <div class="summary-kind">UNSAT</div>
-                            </summary>
-                            <div class="file-body">Good examples of the repo’s “frustration” intuition when constraints are impossible.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/prime_word_ladder.py / prime_alien_dict.py / prime_regex_manifold.py</strong>
-                                    <span>Later extensions with mixed rigor, useful mostly as framing experiments.</span>
-                                </div>
-                                <div class="summary-kind">Mixed</div>
-                            </summary>
-                            <div class="file-body">Some are standard algorithms in repo vocabulary; the manifold language is stretched in these files.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/crt_sudoku_hierarchical.py</strong>
-                                    <span>Multi-dimensional CRT Sudoku: distributed exact jumps over row/col/box manifolds.</span>
-                                </div>
-                                <div class="summary-kind">Strong</div>
-                            </summary>
-                            <div class="file-body">One integer z per group (row/col/box), not one giant z for the whole board. Each jump sets a cell value in exactly one group while preserving locked residues. Backtracking search with full rollback on failure.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/constraint_topology.py</strong>
-                                    <span>Declarative overlap-constraint hypergraph builder.</span>
-                                </div>
-                                <div class="summary-kind">Topology</div>
-                            </summary>
-                            <div class="file-body">Declare groups, variables, and connections. Query the structure, validate, materialize into LocalCRTGroup instances. Includes factories for Sudoku, Latin Square, and N-Queens. The topology layer is the declarative front-end: "what is the structure?"</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/repair_engine.py</strong>
-                                    <span>Generic backtracking solver + repair engine on top of ConstraintTopology.</span>
-                                </div>
-                                <div class="summary-kind">Engine</div>
-                            </summary>
-                            <div class="file-body">solve() for full assignment, repair(locked_vars) for local repair around a committed subset. Includes DOT export for hypergraph visualization and a nurse scheduling demo with sick-call repair. The search layer: "how do we find a solution?"</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/local_crt_repair.py</strong>
-                                    <span>The distilled kernel: general-purpose residue-preserving local state transitions.</span>
-                                </div>
-                                <div class="summary-kind">Kernel</div>
-                            </summary>
-                            <div class="file-body">LocalCRTGroup class with transition(), undo(), snapshot(), rollback_to(), and lazy get_witness(). The operational layer (residues + locks + history) is separated from the arithmetic witness layer (CRT coordinate z). This is the primitive that survived the entire research arc.</div>
-                        </details>
-
-                        <details class="file-card">
-                            <summary>
-                                <div class="summary-main">
-                                    <strong>src/large_scale_benchmark.py / benchmark_vs_cpsat.py</strong>
-                                    <span>Internal scaling tests and direct benchmark against OR-Tools CP-SAT.</span>
-                                </div>
-                                <div class="summary-kind">Benchmark</div>
-                            </summary>
-                            <div class="file-body">These are now the main reality check for anyone evaluating the repo seriously.</div>
-                        </details>
-                    </div>
-
-                    <div class="stack">
-                        <div class="card">
-                            <h3>Documentation files</h3>
-                            <p><strong>README.md</strong> is the main overview. <strong>MATH.md</strong> is the code-first audit. <strong>MONEY.md</strong> is the commercialization note. <strong>docs/MATH.md</strong>, <strong>docs/MATH2.md</strong>, <strong>docs/podcast.md</strong>, and <strong>docs/codingsession.md</strong> preserve older and more exploratory framings.</p>
-                        </div>
-
-                        <div class="card">
-                            <h3>How to read this repo productively</h3>
-                            <p>Start with the topology abstraction (<code>constraint_topology.py</code> → <code>local_crt_repair.py</code> → <code>repair_engine.py</code>). That's the distilled core. Then read the benchmark files and assignment demos. Only after that should you read the exploratory docs, which stretch the framing further than the code can support.</p>
-                        </div>
-
-                        <div class="code-panel">
-                            <div class="code-head">
-                                <strong>Recommended reading order</strong>
-                                <span>Shortest path to a serious understanding</span>
-                            </div>
-                            <pre>1. README.md
-2. MATH.md
-3. src/constraint_topology.py       ← declarative hypergraph
-4. src/local_crt_repair.py          ← CRT arithmetic kernel
-5. src/repair_engine.py             ← generic solve + repair
-6. src/prime_hypergraph_timetabling.py
-7. src/prime_inventory_allocation.py
-8. src/large_scale_benchmark.py
-9. src/benchmark_vs_cpsat.py
-10. Everything else</pre>
-                        </div>
-
-                        <div class="callout danger">
-                            <strong>Scope note:</strong> some of the older prose in the repository is more dramatic than the current benchmark-backed interpretation. That is normal for an evolving research notebook. This page leans toward the narrower reading because it is easier to defend and easier to build on.
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="artifacts">
-                <div class="section-title-row">
-                    <div>
-                        <div class="section-kicker">Artifacts</div>
-                        <h2>Visual and textual artifacts included in the repository.</h2>
-                        <p class="section-desc">
-                            Two generated images and several writeups are part of the repo. They are useful, but they are not all equal in evidentiary weight.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="image-grid">
-                    <div class="image-panel">
-                        <img src="sat_landscape.png" alt="SAT landscape visualization">
-                        <div class="image-caption">
-                            <strong>sat_landscape.png</strong> — a visual energy landscape for the SAT example. Good for intuition. Not a proof that the energy is an exact SAT oracle.
-                        </div>
-                    </div>
-                    <div class="image-panel">
-                        <img src="pigeonhole_frustration.png" alt="Pigeonhole frustration visualization">
-                        <div class="image-caption">
-                            <strong>pigeonhole_frustration.png</strong> — the UNSAT frustration visualization for the pigeonhole example. Best read alongside the stricter discrete version in <code>prime_pigeonhole_strict.py</code>.
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="whats-new">
-                <div class="section-title-row">
-                    <div>
-                        <div class="section-kicker">Changelog</div>
-                        <h2>What's new?</h2>
-                    </div>
-                </div>
-                <div class="grid two">
-                    <div class="card">
-                        <h3>Benchmark summary added</h3>
-                        <p>Added large_scale_benchmark.py and benchmark_vs_cpsat.py with direct OR-Tools CP-SAT comparison on timetabling and inventory allocation problems.</p>
-                    </div>
-                    <div class="card">
-                        <h3>Math audit published</h3>
-                        <p>MATH.md now contains a code-first audit rating the arithmetic core at 61/100, noting strong arithmetic foundation with some overreach in theory and extensions.</p>
-                    </div>
-                    <div class="card">
-                        <h3>Commercial allocation demo</h3>
-                        <p>prime_inventory_allocation.py added with locked-order repair scenario — the main battleground for the CRT vs CP-SAT benchmark comparison.</p>
-                    </div>
-                    <div class="card">
-                        <h3>Extended problem analysis</h3>
-                        <p>New files documenting the SAT landscape, UNSAT frustration, and stricter discrete energy variants alongside the existing puzzle examples.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section>
-                <div class="callout scope">
-                    <strong>One clean way to describe the project:</strong> "A research codebase exploring topology-driven exact repair for structured discrete systems — a three-layer architecture (hypergraph topology, CRT arithmetic kernel, generic repair engine) that lets you lock committed variables and repair the rest with exact arithmetic guarantees."
-                </div>
-            </section>
-        </main>
-
-        <footer>
-            <div class="footer-card">
-                <div class="footer-copy">
-                    Geometric IF-ELSE reads best as an evolving technical notebook: one part topology abstraction (hypergraph + CRT kernel + repair engine), one part search experiment, one part attempt to find the right language for lock-and-repair constraint solving.
-                </div>
-                <div class="footer-links">
-                    <a href="README.md">README</a>
-                    <a href="MATH.md">Math Audit</a>
-                    <a href="MONEY.md">Commercial Notes</a>
-                    <a href="src/benchmark_vs_cpsat.py">CP-SAT Benchmark</a>
-                    <a href="src/large_scale_benchmark.py">Scaling Harness</a>
-                </div>
-            </div>
-        </footer>
+        <div class="file-desc" style="padding:12px 18px;border-top:1px solid var(--border);font-size:0.82rem;color:var(--text-muted);">
+            Used in <code>prime_n_queens.py</code>, <code>prime_timetable.py</code>, and all constraint-solving demos.
+        </div>
     </div>
+</section>
+
+<!-- ===== 5. EXPERIMENTS ===== -->
+<section class="blog-section" id="experiments">
+    <div class="section-kicker">Results</div>
+    <h2>Every Experiment, Grouped by What It Teaches</h2>
+    <p>
+        The repo contains a real mix: mathematically central pieces, strong assignment demos,
+        visualizations, and analogy-driven extensions. Here's how they break down.
+    </p>
+</section>
+
+<section class="blog-section" id="math-core">
+    <h3>🔬 Math Core</h3>
+    <p>
+        The cleanest demonstrations of the residue-loss story, local-minimum problems, and the
+        shift from wave wandering to exact coordinate targeting.
+    </p>
+    <div class="results-grid">
+        <div class="result-card">
+            <div class="result-icon">📉</div>
+            <h4>prime_logic_nn.py</h4>
+            <p>Minimal residue-loss network targeting the CRT coordinate for [1, 0, 1] with primes [2, 3, 5]. Converges in ~25 epochs.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">🔥</div>
+            <h4>hard_prime_maze.py</h4>
+            <p>5–7 prime stress test. Shows why cosine landscapes get hard — superposition of waves creates interference traps that defeat gradient descent.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">🎯</div>
+            <h4>garner_navigation.py</h4>
+            <p>Garner's Algorithm as a "teleporter." Switches from periodic loss to direct coordinate regression. The bridge from wandering to targeting.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">🚦</div>
+            <h4>traffic_controller.py</h4>
+            <p>Safety-critical 4-way intersection. Blends MSE + cosine wave loss. <strong>7/7 scenarios passed with zero safety violations.</strong></p>
+        </div>
+    </div>
+</section>
+
+<section class="blog-section" id="assignment">
+    <h3>🏗️ Constraint Assignment Demos</h3>
+    <p>
+        The strongest product-facing examples — structured problems solved with exact CRT-preserving jumps.
+    </p>
+    <div class="results-grid">
+        <div class="result-card">
+            <div class="result-icon">♛</div>
+            <h4>prime_n_queens.py</h4>
+            <p>8-Queens solved via CRT backtracking. Master Coordinate: 2,372,774,783. Exact queen positions [5,2,4,6,0,3,1,7] extracted from residues.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">📅</div>
+            <h4>prime_timetable.py</h4>
+            <p>5-class university scheduler with room/teacher conflicts. Master Coordinate 251,603 produces a conflict-free schedule in one pass.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">📊</div>
+            <h4>prime_hypergraph_timetabling.py</h4>
+            <p>NP-hard course placement with room/instructor/student conflicts. Exact valid timetable via CRT-preserving jumps + backtracking.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">📦</div>
+            <h4>prime_inventory_allocation.py</h4>
+            <p>E-commerce order promising under stock/lane constraints. Valid plan found, then repaired under disruption while preserving locked orders.</p>
+        </div>
+    </div>
+</section>
+
+<section class="blog-section" id="csp">
+    <h3>🧩 Classic CSP & Search</h3>
+    <p>
+        Puzzles and constraint problems that use the CRT framework for search, deduction, and UNSAT proofs.
+    </p>
+    <div class="results-grid">
+        <div class="result-card">
+            <div class="result-icon">🃏</div>
+            <h4>prime_mastermind.py</h4>
+            <p>100/100 games solved, average 4.47 turns (theoretical optimum ~4.34). Each guess collapses entire sheets of the Riemann surface.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">🕐</div>
+            <h4>prime_pigeonhole.py</h4>
+            <p>Pigeonhole principle (3 pigeons, 2 holes). No zero-energy state exists — UNSAT appears as irreducible geometric frustration.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">✅</div>
+            <h4>prime_pigeonhole_strict.py</h4>
+            <p>Strict binary version — proved UNSAT with a minimum energy floor of 5.0. Impossible systems can't collapse into any valley.</p>
+        </div>
+    </div>
+</section>
+
+<section class="blog-section" id="sat">
+    <h3>🔍 SAT Exploration</h3>
+    <div class="results-grid">
+        <div class="result-card">
+            <div class="result-icon">⛰️</div>
+            <h4>prime_sat_landscape.py</h4>
+            <p>Visualizes 3-SAT as a physical energy terrain. 17 satisfying basins found in a 210-unit manifold. Mountains = frustration; valleys = truth.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">🔍</div>
+            <h4>verify_sat.py</h4>
+            <p>Cross-checks manifold valleys against actual Boolean SAT. Identifies "ghost solutions" — topological wildcards that satisfy the geometry but diverge from binary logic.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">📋</div>
+            <h4>extract_sat_solutions.py</h4>
+            <p>Decodes satisfying coordinates back into Boolean assignments. Demonstrates full reversibility: integer → residues → truth table.</p>
+        </div>
+    </div>
+</section>
+
+<section class="blog-section" id="advanced">
+    <h3>⚙️ Advanced / Multi-Domain</h3>
+    <p>
+        These push the CRT framework into harder structural territory — multi-constraint-group
+        problems and hierarchical state management. <strong>This is not analogy.</strong> The
+        <code>crt_sudoku_hierarchical.py</code> file uses genuine distributed CRT jumps across
+        overlapping constraint groups with rollback — a real multi-group extension of the core method.
+    </p>
+    <div class="results-grid">
+        <div class="result-card">
+            <div class="result-icon">🎯</div>
+            <h4>crt_sudoku_hierarchical.py</h4>
+            <p>Multi-dimensional Sudoku — distributed CRT jumps across row, column, and box groups. Each group is its own local CRT microspace. The definitive version (supersedes <code>prime_sudoku.py</code>).</p>
+        </div>
+    </div>
+</section>
+
+<section class="blog-section" id="analogy">
+    <h3>🧠 Analogy-Heavy Extensions</h3>
+    <p>
+        These stretch the CRT framing into domains where the arithmetic core isn't the primary
+        engine — the value is more in the <em>metaphor</em> than the math.
+    </p>
+    <div class="results-grid">
+        <div class="result-card">
+            <div class="result-icon">🪜</div>
+            <h4>prime_word_ladder.py</h4>
+            <p>Standard graph search (BFS). Multiple shortest paths appear as equal-energy valleys — a nice demonstration, but no CRT involved.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">🌐</div>
+            <h4>prime_alien_dict.py</h4>
+            <p>Topological sort / Kahn's algorithm. Partial orders and DAGs, not CRT. The "topology" language is metaphorical here.</p>
+        </div>
+        <div class="result-card">
+            <div class="result-icon">🧬</div>
+            <h4>prime_regex_manifold.py</h4>
+            <p>Dynamic programming for regex matching with <code>.</code> and <code>*</code>. Interesting metaphor layer, but not a validated CRT extension.</p>
+        </div>
+    </div>
+</section>
+
+<section class="blog-section" id="cpu-scheduling">
+    <div class="section-kicker">Case Study</div>
+    <h2>CPU Scheduling as Native Habitat</h2>
+    <p>
+        CPU scheduling is arguably the cleanest real-world expression of the CRT repair engine.
+    <p>
+        Two benchmark scripts anchor the repo: an internal scaling harness and direct comparisons
+        against OR-Tools CP-SAT on generated instances.
+    </p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Benchmark</th>
+                    <th>CRT Search</th>
+                    <th>CP-SAT</th>
+                    <th>Takeaway</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Timetabling</strong><br>12 courses, 4 options</td>
+                    <td>100% success, median 0.4 ms</td>
+                    <td>100% success, median 3.1 ms</td>
+                    <td>Nice result for arithmetic search on clean planted-feasible structure.</td>
+                </tr>
+                <tr>
+                    <td><strong>Timetabling</strong><br>24 courses, 5 options</td>
+                    <td>100% success, median 2.1 ms</td>
+                    <td>100% success, median 4.1 ms</td>
+                    <td>Still competitive at tested synthetic size.</td>
+                </tr>
+                <tr>
+                    <td><strong>Inventory Base</strong><br>20 orders, 3 options</td>
+                    <td>100% success, 5.9 ms, obj 2851</td>
+                    <td>100% success, 2.4 ms, obj 2851</td>
+                    <td>CP-SAT already cleaner here.</td>
+                </tr>
+                <tr>
+                    <td><strong>Inventory Base</strong><br>35 orders, 4 options</td>
+                    <td>100% success, 1031 ms, obj 4946</td>
+                    <td>100% success, 4.3 ms, obj 4946</td>
+                    <td>Standard solver pulls away at scale.</td>
+                </tr>
+                <tr>
+                    <td><strong>Inventory Repair</strong><br>50 orders, 25% locked</td>
+                    <td>80% success, 754 ms, obj 7496</td>
+                    <td>80% success, 3.4 ms, obj 7450</td>
+                    <td>Repair angle stays interesting, but baseline is stronger.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout callout-warn">
+        <strong>Reading note:</strong> The CRT search looks good on planted-feasible timetabling instances,
+        and remains interesting as a repair primitive. On the inventory benchmark, CP-SAT becomes the
+        stronger general-purpose optimizer once size and objective quality matter.
+    </div>
+</section>
+
+<!-- ===== 6. VERDICT ===== -->
+<section class="blog-section" id="verdict">
+    <h2>Bottom Line</h2>
+
+    <div class="metrics-grid">
+        <div class="metric">
+            <div class="metric-value" style="color:var(--success);">✓</div>
+            <div class="metric-label">Exact Arithmetic</div>
+            <div class="metric-note">CRT jumps are mathematically proven — no approximation in the core primitive.</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" style="color:var(--accent);">O(1)</div>
+            <div class="metric-label">Rollback Cost</div>
+            <div class="metric-note">Mutation stack enables constant-time undo — checkpoint-friendly.</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" style="color:var(--warm);">10–1000×</div>
+            <div class="metric-label">Gap to CP-SAT</div>
+            <div class="metric-note">On general optimization. The primitive is complementary, not competitive.</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" style="color:var(--danger);">~61</div>
+            <div class="metric-label">Math Audit /100</div>
+            <div class="metric-note">CRT core holds. Extensions overclaim. See MATH.md for details.</div>
+        </div>
+        <div class="metric">
+            <div class="result-icon">🎯</div>
+            <div class="metric-label">Sudoku (Hierarchical)</div>
+            <div class="metric-note">Distributed CRT jumps across row/col/box groups — each group its own local CRT microspace. Supersedes <code>prime_sudoku.py</code>.</div>
+        </div>
+    </div>
+
+    <blockquote>
+        This framework is best understood as a <strong>specialized exact repair/search primitive</strong>,
+        not a replacement for mature combinatorial solvers. Its commercial value lies in
+        lock-and-repair workflows where preserving partial decisions matters more than global
+        re-optimization.
+    </blockquote>
+
+    <p>
+        <strong>Strongest fit:</strong> Small-alphabet, high-constraint, high-cost-of-mistakes
+        assignment problems — staff rostering, order promising, dispatch routing, exam scheduling.
+    </p>
+    <p>
+        <strong>Not for:</strong> Large-domain optimization, continuous problems, or competing
+        with CP-SAT on general allocation.
+    </p>
+</section>
+
+<!-- ===== 7. CODEBASE ===== -->
+<section class="blog-section" id="codebase">
+    <h2>Codebase Map</h2>
+    <p>
+        The topology abstraction (<code>constraint_topology.py</code> + <code>repair_engine.py</code> +
+        <code>local_crt_repair.py</code>) is the distilled core. Everything else is either a demo
+        built on top or exploratory framing.
+    </p>
+
+    <details class="file-card" open>
+        <summary>
+            <span class="file-name">src/prime_logic_nn.py</span>
+            <span class="file-kind core">Core</span>
+        </summary>
+        <div class="file-desc">Minimal residue-loss network targeting the CRT coordinate for [1, 0, 1]. The cleanest "continuous prime-wave loss" demonstration.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/hard_prime_maze.py</span>
+            <span class="file-kind core">Core</span>
+        </summary>
+        <div class="file-desc">Higher-prime stress test (5D/7D) showing local minima and optimization difficulty. Useful for understanding Moiré frustration.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/garner_navigation.py</span>
+            <span class="file-kind core">Core</span>
+        </summary>
+        <div class="file-desc">Direct regression to an exact CRT target using Garner's Algorithm. Good illustration of the shift from manifold loss to exact arithmetic guidance.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/traffic_controller.py</span>
+            <span class="file-kind demo">Demo</span>
+        </summary>
+        <div class="file-desc">Safe traffic-state selection with hybrid MSE + cosine loss and explicit admissibility rules. 7/7 safety scenarios passed.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_n_queens.py</span>
+            <span class="file-kind demo">Demo</span>
+        </summary>
+        <div class="file-desc">Backtracking search with CRT-preserving jumps between accepted queen placements. Solved 8-Queens with z = 2,372,774,783.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_timetable.py</span>
+            <span class="file-kind demo">Demo</span>
+        </summary>
+        <div class="file-desc">University class scheduler using CRT jumps for room/time assignment under teacher and room collision constraints.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_hypergraph_timetabling.py</span>
+            <span class="file-kind demo">Demo</span>
+        </summary>
+        <div class="file-desc">NP-hard course-placement timetabling with room/instructor/student conflicts via CRT-preserving jumps + backtracking.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_inventory_allocation.py</span>
+            <span class="file-kind demo">Demo</span>
+        </summary>
+        <div class="file-desc">Flipkart-style order promising with stock, lane, and fulfillment constraints. Supports lock-and-repair under disruption.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_mastermind.py</span>
+            <span class="file-kind demo">Demo</span>
+        </summary>
+        <div class="file-desc">Mastermind codebreaker using CRT residues for code states. 100/100 games solved, 4.47 average turns.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_sat_landscape.py</span>
+            <span class="file-kind vis">Visualization</span>
+        </summary>
+        <div class="file-desc">3-SAT clause visualization as penalty-wave geometry. Produces a physical energy terrain of valleys and mountains.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_pigeonhole.py</span>
+            <span class="file-kind explore">Explore</span>
+        </summary>
+        <div class="file-desc">Pigeonhole principle (3 pigeons / 2 holes) as an energy model. No zero-energy state — UNSAT as irreducible frustration.</div>
+    </details>
+
+<details class="file-card">
+         <summary>
+             <span class="file-name">src/prime_pigeonhole_strict.py</span>
+             <span class="file-kind explore">Explore</span>
+         </summary>
+         <div class="file-desc">Strict binary version with discrete energy. Proved UNSAT with minimum energy floor of 5.0.</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
+             <span class="file-name">src/crt_sudoku_hierarchical.py</span>
+             <span class="file-kind demo">Demo</span>
+         </summary>
+         <div class="file-desc">Multi-dimensional Sudoku using distributed CRT jumps across row, column, and box groups. The proper hierarchical version (supersedes <code>prime_sudoku.py</code>).</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
+             <span class="file-name">src/cpu_scheduling.py</span>
+             <span class="file-kind demo">Demo</span>
+         </summary>
+         <div class="file-desc">4-core CPU scheduler using CRT lock-and-repair. Demonstrates initial schedule, disruption injection, and minimal-repair rescheduling that preserves locked (warm-cache) cores.</div>
+     </details>
+
+     <details class="file-card">
+         <summary>
+             <span class="file-name">src/prime_word_ladder.py</span>
+             <span class="file-kind explore">Explore</span>
+         </summary>
+         <div class="file-desc">Standard graph search (BFS on Hamming distance). Multiple shortest paths as equal-energy valleys. No CRT required.</div>
+     </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_alien_dict.py</span>
+            <span class="file-kind explore">Explore</span>
+        </summary>
+        <div class="file-desc">Topological sorting with Kahn's algorithm. Classic DAG problem — the prime framing is metaphorical here.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/prime_regex_manifold.py</span>
+            <span class="file-kind explore">Explore</span>
+        </summary>
+        <div class="file-desc">DP for regex matching with <code>.</code> and <code>*</code>. NFA-as-manifold metaphor — interesting but not a validated CRT extension.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/large_scale_benchmark.py</span>
+            <span class="file-kind core">Core</span>
+        </summary>
+        <div class="file-desc">Internal scaling harness for timetabling and inventory problems across variable sizes.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/benchmark_vs_cpsat.py</span>
+            <span class="file-kind core">Core</span>
+        </summary>
+        <div class="file-desc">Direct comparison against OR-Tools CP-SAT on identical generated instances. The honest reality check.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/extract_sat_solutions.py</span>
+            <span class="file-kind vis">Visualization</span>
+        </summary>
+        <div class="file-desc">Decodes satisfying CRT coordinates back into Boolean assignments via modulo arithmetic.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/verify_sat.py</span>
+            <span class="file-kind vis">Visualization</span>
+        </summary>
+        <div class="file-desc">Cross-checks manifold valleys against Boolean SAT truth. Separates "pure Boolean" from "ghost" solutions.</div>
+    </details>
+
+    <details class="file-card">
+        <summary>
+            <span class="file-name">src/final_sat_verification.py</span>
+            <span class="file-kind vis">Visualization</span>
+        </summary>
+        <div class="file-desc">Final global SAT alignment — checks entire 210-unit manifold against exact Boolean satisfaction.</div>
+    </details>
+</section>
+
+<!-- ===== 8. WHAT IT IS / ISN'T ===== -->
+<section class="blog-section" id="links">
+    <h2>What This Is (and Isn't)</h2>
+
+    <div class="callout callout-success">
+        <strong>It IS:</strong> An exact lock-and-repair primitive for structured discrete assignment problems.
+        A mechanism for preserving committed decisions while locally fixing disruptions.
+        A bridge between continuous optimization and combinatorial constraint satisfaction.
+    </div>
+
+    <div class="callout callout-danger">
+        <strong>It is NOT:</strong> A universal optimizer. A P=NP claim. A replacement for CP-SAT on general problems.
+        A production-ready product — it's a research codebase with known scaling limitations.
+    </div>
+
+    <blockquote>
+        Congruence invariance in discrete arithmetic is <strong>exactly equivalent</strong> to monodromy
+        invariance in continuous topology. The frustrations in gradient descent are not random noise —
+        they are literal physical topographies of constraint violations.
+    </blockquote>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="post-footer">
+    <div class="footer-links">
+        <a class="footer-btn" href="README.md">📖 README</a>
+        <a class="footer-btn" href="MATH.md">📐 Math Audit (61/100)</a>
+        <a class="footer-btn" href="MONEY.md">💰 Commercial Notes</a>
+        <a class="footer-btn" href="CRITIC.md">🛡️ Critique Response</a>
+        <a class="footer-btn" href="docs/podcast.md">🎙️ Podcast Transcript</a>
+        <a class="footer-btn" href="docs/MATH.md">🧮 PyTorch Tutorial</a>
+    </div>
+    <p class="footer-note">
+        <strong>Geometric IF-ELSE</strong> · A Shunyabar Labs research project ·
+        Source: <code>src/</code> (19 Python files) · Docs: <code>docs/</code> ·
+        Math audit, benchmarks, and critique all included in the repo.<br>
+        The core question remains open: <em>What other ancient discrete algorithms are actually just the
+        flat collapsed shadows of magnificent continuous multi-dimensional geometries waiting to be discovered?</em>
+    </p>
+</footer>
+
+</main>
+</div>
+
+<!-- ===== TOC ACTIVE STATE ===== -->
+<script>
+(function() {
+    const links = document.querySelectorAll('.toc-list a');
+    const sections = [];
+    links.forEach(a => {
+        const id = a.getAttribute('href').substring(1);
+        const el = document.getElementById(id);
+        if (el) sections.push({ id, el, link: a });
+    });
+
+    let ticking = false;
+
+    function updateActive() {
+        let current = sections[0]?.id;
+        for (const s of sections) {
+            if (s.el.getBoundingClientRect().top <= 120) {
+                current = s.id;
+            }
+        }
+        links.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.toc-list a[href="#${current}"]`);
+        if (active) active.classList.add('active');
+    }
+
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => { updateActive(); ticking = false; });
+            ticking = true;
+        }
+    }, { passive: true });
+
+    // Smooth scroll for TOC links
+    links.forEach(a => {
+        a.addEventListener('click', function(e) {
+            const target = document.getElementById(this.getAttribute('href').substring(1));
+            if (target && window.innerWidth > 1080) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                history.pushState(null, '', '#' + this.getAttribute('href').substring(1));
+            }
+        });
+    });
+
+    updateActive();
+})();
+</script>
+
 </body>
 </html>

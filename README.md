@@ -137,8 +137,9 @@ This sets variable `t` to value `c` while **exactly preserving** all locked resi
 | Dual-Loss Architecture | Combine MSE-to-Garner with wave snapping | Massive convergence improvement | "Highway + snap" worked better than wave loss alone |
 | N-Queens | Encode queen positions with primes and CRT decoding | Solved full 8-Queens with exact coordinate extraction | Constraint satisfaction can be navigated geometrically with structured jumps |
 | Timetable Scheduling | Assign classes to rooms/times under conflicts | Produced valid non-overlapping schedule | Resource allocation naturally fits manifold-style constraint encoding |
-| Hypergraph Timetabling | Solve NP-hard course-placement with room/instructor/student conflicts | Exact valid timetable found via CRT-preserving jumps and backtracking | Framework strongest on small-alphabet NP-hard problems with preserved decisions |
+| Hypergraph Timetabling | Solve NP-hard course-placement with room/instructor/student conflicts | Exact valid timetable found via CRT-preserving jumps + backtracking | Framework strongest on small-alphabet NP-hard problems with preserved decisions |
 | Inventory Allocation | Allocate e-commerce orders under stock and lane constraints | Valid low-cost plan found, repaired under disruption while preserving locked promises | Non-scheduling order promising is a strong commercial fit for lock-and-repair |
+| Sudoku (Hierarchical) | Solve 9×9 Sudoku with distributed CRT jumps across row/col/box groups | Valid solution found via hierarchical monodromy — each group is its own local CRT microspace | Multi-constraint-group problems require distributed jumps, not one giant z |
 | Mastermind Solver | Use residues to represent code states and deductions | 100/100 games solved, ~4.47 average turns | Constraint elimination behaves like manifold collapse |
 | SAT Landscape | Turn SAT clauses into penalty-wave geometry | Produced visible valleys/mountains and satisfying basins | SAT problems can literally be visualized as frustration terrains |
 | Pigeonhole Principle | Try impossible 3 pigeons / 2 holes CSP | No zero-energy solution existed | UNSAT appears as irreducible geometric frustration |
@@ -155,6 +156,108 @@ When superimposing waves of different prime frequencies, you get **moiré interf
 ```
 z_new = z_old + n * M  (safe corridor for all n ∈ ℤ)
 ```
+
+---
+
+## Case Study: CPU Scheduling as Native Habitat
+
+CPU scheduling is arguably the cleanest real-world expression of the CRT repair engine.
+It is already a pure commitment-preserving repair problem: tasks are assigned time slots,
+cores, priorities, and affinities — and when something changes, you want the *smallest exact
+repair*, not a full reschedule.
+
+### The Overlap Topology
+
+| Group | Constraint |
+|-------|-----------|
+| Task | Each job wants a start time, finish time, core, priority |
+| Core | Each CPU core can only run one task at a time |
+| Deadline | Some tasks must finish before a cutoff |
+| Affinity | Some tasks prefer certain cores |
+| Dependency | Task B cannot start until task A finishes |
+| Energy/Thermal | Some tasks should be packed or spread for thermal reasons |
+
+Each group is a constraint dimension in the hypergraph. The CRT coordinate `z` encodes
+the full schedule: `z mod p_i` extracts the assignment for dimension `i`. Overlapping
+groups (a task lives in the core group *and* the deadline group *and* the affinity group
+simultaneously) are handled by the shared variables — exactly how the repo's constraint
+topology was designed.
+
+### Encoding
+
+Each CPU core gets a prime. Process assignment to core `i`:
+
+```
+process_position = z mod p_i
+```
+
+The full schedule across `N` cores is a single CRT coordinate `z`. Committed tasks
+(those with warm L1/L2 cache) are locked — their residues are preserved exactly. The
+product `M = ∏(locked primes)` becomes the **cache-affinity shield**: the algebraic
+guarantee that no warm-cache process migrates.
+
+### The Geometric Preemption
+
+Traditional scheduling:
+
+```
+IF process fits → assign
+ELSE → dump to ready queue, re-run scheduler from scratch
+```
+
+With CRT:
+
+```
+IF core i has warm-cache process → residue locked, prime enters M
+ELSE → CRT jump: z' = z + kM finds the exact new placement
+       that displaces only what must move, preserving all locked cores
+```
+
+You're not searching for a valid schedule. You're *computing* where the displaced
+process **has** to land. The ELSE branch has geometric structure — it's a monodromy
+jump in scheduling space.
+
+### Repair Radius as a Scheduling Metric
+
+The repo already tracks `REPAIR RADIUS` — the number of coordinate changes per repair.
+In scheduling, that literal number equals **context switches + cache migrations** caused
+by the disruption. Minimizing repair radius = minimizing cache thrash. That's a metric
+traditional schedulers handle only heuristically; the CRT engine optimizes it provably
+via the smallest `k` that satisfies the new constraint.
+
+### Real-Time Scheduling Connection
+
+Rate Monotonic Scheduling (RMS) already assigns priorities based on periods — and a
+collection of coprime periods is exactly the CRT setup. The hyperperiod `P = ∏ p_i`
+is the CRT modulus. Each process's phase = its residue. When a process blocks, its
+residue needs to jump. CRT gives you the exact new phase that doesn't collide with
+committed processes.
+
+The hyperperiod **is** the manifold period.
+
+### NUMA Mapping
+
+NUMA nodes map directly to constraint groups:
+
+```
+Group: NUMA node 0 → cores [0,1,2,3]
+Group: NUMA node 1 → cores [4,5,6,7]
+Overlap positions: processes that span both nodes
+```
+
+Declare structure once → get schedule + repair for free. That's the repo's exact promise.
+
+### The Sweet Spot
+
+Current OS schedulers handle continuous time, variable execution lengths, and dozens of
+heuristics (fairness, starvation prevention, power states). CRT works cleanly in the
+small-domain discrete case — **real-time embedded systems**: fixed periods, hard deadlines,
+small core counts, cache affinity critical. That's automotive, aerospace, industrial control.
+The geometry is tight enough to matter there.
+
+**Thesis:** preemption is a CRT jump, not a restart. The full reschedule is never needed for
+small perturbations. For a dynamic scheduler handling real-time arrivals on 4–16 cores,
+the CRT repair model isn't a metaphor — it's the natural computational primitive.
 
 ---
 
@@ -198,7 +301,7 @@ src/
 ├── prime_word_ladder.py        # Word Ladder II — multiple equal-energy valleys
 ├── prime_alien_dict.py         # Topological ordering with cycle detection
 ├── prime_regex_manifold.py     # NFA as multi-sheet manifold navigation
-└── prime_sudoku.py             # Full 9x9 Sudoku (81-cell constraint manifold)
+└── crt_sudoku_hierarchical.py  # Multi-dimensional Sudoku via distributed CRT jumps (supersedes prime_sudoku.py)
 
 docs/
 ├── MATH.md                    # Mathematical formulation and PyTorch implementation
@@ -224,6 +327,7 @@ CRITIC.md                    # Response to Hacker News critique
 - **Word Ladder II:** Found multiple shortest paths as equal-energy valleys
 - **Alien Dictionary:** Cycle detection correctly identifies UNSAT (prefix invalid cases)
 - **Regex Matching:** Path tracing through multi-sheet manifold — NFAs are literally topology
+- **Sudoku (Hierarchical):** 81-cell Sudoku solved via distributed CRT jumps across row/col/box groups — each group is its own local CRT microspace
 
 ---
 
